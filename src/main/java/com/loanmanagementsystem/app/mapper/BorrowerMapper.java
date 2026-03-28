@@ -5,6 +5,8 @@ import com.loanmanagementsystem.app.dto.response.BorrowerResponse;
 import com.loanmanagementsystem.app.entity.Borrower;
 import org.mapstruct.*;
 
+import java.util.List;
+
 @Mapper(componentModel = "spring")
 public interface BorrowerMapper {
 
@@ -22,4 +24,6 @@ public interface BorrowerMapper {
     Borrower toEntity(RegisterUserRequest request);
 
     BorrowerResponse toResponse(Borrower borrower);
+
+    List<BorrowerResponse> toResponseList(List<Borrower> borrowers);
 }
