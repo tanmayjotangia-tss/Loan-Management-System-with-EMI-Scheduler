@@ -8,11 +8,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-/**
- * Spring Security calls loadUserByUsername() during authentication.
- * "Username" in our system is the email address.
- * We also check isActive so deactivated accounts cannot log in.
- */
 @Service
 @RequiredArgsConstructor
 public class CustomUserDetailsService implements UserDetailsService {
@@ -25,11 +20,6 @@ public class CustomUserDetailsService implements UserDetailsService {
                 .orElseThrow(() -> new UsernameNotFoundException(
                         "No active account found for email: " + email));
 
-        return new CustomUserDetails(
-                user.getId(),
-                user.getEmail(),
-                user.getPassword(),
-                user.getRole()
-        );
+        return new CustomUserDetails(user.getId(), user.getEmail(), user.getPassword(), user.getRole());
     }
 }

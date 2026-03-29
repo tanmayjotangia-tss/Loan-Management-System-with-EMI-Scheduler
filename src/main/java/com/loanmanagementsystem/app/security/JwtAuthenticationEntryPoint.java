@@ -8,10 +8,6 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
-/**
- * Called when an unauthenticated request hits a secured endpoint.
- * Returns 401 Unauthorized instead of a redirect to a login page.
- */
 @Component
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
 

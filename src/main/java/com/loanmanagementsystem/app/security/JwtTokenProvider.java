@@ -21,25 +21,21 @@ public class JwtTokenProvider {
     @Value("${app.jwt.expiration-ms}")
     private long jwtExpirationMs;
 
-    // ── Generate ──────────────────────────────────────────────────────────
-
     public String generateToken(Authentication authentication) {
         CustomUserDetails user = (CustomUserDetails) authentication.getPrincipal();
 
-        Date now    = new Date();
+        Date now = new Date();
         Date expiry = new Date(now.getTime() + jwtExpirationMs);
 
         return Jwts.builder()
-                .subject(user.getEmail())               // email as JWT subject
-                .claim("userId", user.getUserId())      // so controllers can get userId from token
-                .claim("role",   user.getRole().name()) // role for quick checks
+                .subject(user.getEmail())
+                .claim("userId", user.getUserId())
+                .claim("role",   user.getRole().name())
                 .issuedAt(now)
                 .expiration(expiry)
                 .signWith(signingKey())
                 .compact();
     }
-
-    // ── Validate ──────────────────────────────────────────────────────────
 
     public boolean validateToken(String token) {
         try {
@@ -57,8 +53,6 @@ public class JwtTokenProvider {
         return false;
     }
 
-    // ── Extract claims ────────────────────────────────────────────────────
-
     public String getEmail(String token) {
         return parseClaims(token).getSubject();
     }
@@ -70,8 +64,6 @@ public class JwtTokenProvider {
     public String getRole(String token) {
         return parseClaims(token).get("role", String.class);
     }
-
-    // ── Helpers ───────────────────────────────────────────────────────────
 
     private Claims parseClaims(String token) {
         return Jwts.parser()
