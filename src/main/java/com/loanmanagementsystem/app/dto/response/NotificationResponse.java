@@ -1,5 +1,6 @@
 package com.loanmanagementsystem.app.dto.response;
 
+import com.loanmanagementsystem.app.entity.enums.NotificationStatus;
 import com.loanmanagementsystem.app.entity.enums.NotificationType;
 import lombok.*;
 
@@ -18,4 +19,5 @@ public class NotificationResponse {
     private String message;
     private String emailId;
     private LocalDateTime sentAt;
+    private NotificationStatus status;
 }

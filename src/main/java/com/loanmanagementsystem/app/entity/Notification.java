@@ -1,5 +1,6 @@
 package com.loanmanagementsystem.app.entity;
 
+import com.loanmanagementsystem.app.entity.enums.NotificationStatus;
 import com.loanmanagementsystem.app.entity.enums.NotificationType;
 import jakarta.persistence.*;
 import lombok.*;
@@ -39,4 +40,9 @@ public class Notification {
 
     @Column(name = "sent_at")
     private LocalDateTime sentAt;
+
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private NotificationStatus status = NotificationStatus.SENT;
 }

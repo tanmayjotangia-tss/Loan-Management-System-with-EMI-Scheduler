@@ -9,6 +9,7 @@ import com.loanmanagementsystem.app.entity.LoanOfficer;
 import com.loanmanagementsystem.app.entity.LoanProperties;
 import com.loanmanagementsystem.app.entity.enums.LoanApplicationStatus;
 import com.loanmanagementsystem.app.entity.enums.LoanType;
+import com.loanmanagementsystem.app.entity.enums.NotificationType;
 import com.loanmanagementsystem.app.mapper.LoanApplicationMapper;
 import com.loanmanagementsystem.app.repository.BorrowerRepository;
 import com.loanmanagementsystem.app.repository.LoanApplicationRepository;
@@ -29,6 +30,7 @@ public class LoanApplicationServiceImplementation implements LoanApplicationServ
     private final LoanOfficerRepository loanOfficerRepository;
     private final LoanPropertiesRepository loanPropertiesRepository;
     private final LoanApplicationMapper loanApplicationMapper;
+    private final NotificationService notificationService;
 
 
     @Override
@@ -59,6 +61,14 @@ public class LoanApplicationServiceImplementation implements LoanApplicationServ
         //Calculate Risk
 
         loanApplicationRepository.save(loanApplication);
+
+        notificationService.sendNotification(
+                borrowerId,
+                NotificationType.APPLICATION,
+                "Loan Application Submitted",
+                "Your loan application for " + request.getRequestedAmount() + " has been successfully submitted and is under review."
+        );
+
         return loanApplicationMapper.toResponse(loanApplication);
     }
 
@@ -124,6 +134,21 @@ public class LoanApplicationServiceImplementation implements LoanApplicationServ
         }
 
         loanApplicationRepository.save(loanApplication);
+
+        NotificationType type = NotificationType.APPLICATION;
+        if (request.getStatus() == LoanApplicationStatus.APPROVED) {
+            type = NotificationType.APPROVAL;
+        } else if (request.getStatus() == LoanApplicationStatus.REJECTED) {
+            type = NotificationType.REJECTED;
+        }
+
+        notificationService.sendNotification(
+                loanApplication.getBorrower().getId(),
+                type,
+                "Loan Application Update",
+                "Your loan application status has been updated to: " + request.getStatus() + "."
+        );
+
         return loanApplicationMapper.toResponse(loanApplication);
     }
 }

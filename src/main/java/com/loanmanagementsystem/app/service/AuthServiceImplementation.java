@@ -27,7 +27,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class AuthServiceImpl implements AuthService {
+public class AuthServiceImplementation implements AuthService {
 
     private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;

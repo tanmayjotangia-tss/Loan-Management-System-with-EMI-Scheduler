@@ -7,6 +7,7 @@ import com.loanmanagementsystem.app.entity.Loan;
 import com.loanmanagementsystem.app.entity.Payment;
 import com.loanmanagementsystem.app.entity.enums.EmiStatus;
 import com.loanmanagementsystem.app.entity.enums.LoanStatus;
+import com.loanmanagementsystem.app.entity.enums.NotificationType;
 import com.loanmanagementsystem.app.mapper.PaymentMapper;
 import com.loanmanagementsystem.app.repository.EmiRepository;
 import com.loanmanagementsystem.app.repository.LoanRepository;
@@ -27,6 +28,7 @@ public class PaymentServiceImplementation implements PaymentService {
     private final LoanRepository loanRepository;
     private final EmiRepository emiRepository;
     private final PaymentMapper paymentMapper;
+    private final NotificationService notificationService;
 
     @Override
     public PaymentResponse makeEmiPayment(PaymentRequest request) {
@@ -73,6 +75,13 @@ public class PaymentServiceImplementation implements PaymentService {
 
         loan.setTotalPayableAmount(loan.getTotalPayableAmount().subtract(request.getAmountPaid()));
         loanRepository.save(loan);
+
+        notificationService.sendNotification(
+                loan.getBorrower().getId(),
+                NotificationType.PAYMENT,
+                "EMI Payment Successful",
+                "Your EMI payment of " + request.getAmountPaid() + " for Loan ID " + loan.getId() + " was successful."
+        );
 
         return paymentMapper.toResponse(payment);
     }

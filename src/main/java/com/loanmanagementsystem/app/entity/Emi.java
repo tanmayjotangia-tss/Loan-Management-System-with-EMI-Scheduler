@@ -56,6 +56,15 @@ public class Emi {
     @Column(name = "paid_amount", precision = 15, scale = 2)
     private BigDecimal paidAmount;
 
+    @Column(name = "reminder_sent", nullable = false)
+    private boolean reminderSent = false;
+
+    @Column(name = "overdue_marked", nullable = false)
+    private boolean overdueMarked = false;
+
+    @Column(name = "last_overdue_alert_day")
+    private Integer lastOverdueAlertDay = 0;
+
     @Builder.Default
     @OneToMany(mappedBy = "emi", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Payment> payments = new ArrayList<>();
