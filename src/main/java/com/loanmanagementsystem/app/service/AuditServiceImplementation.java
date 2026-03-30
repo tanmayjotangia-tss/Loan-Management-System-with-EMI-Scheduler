@@ -40,7 +40,7 @@ public class AuditServiceImplementation implements AuditService {
 
     @Override
     public List<AuditLogResponse> getLogsByUserId(Long userId) {
-        return auditLogRepository.findAllByPerformedByUserIdOrderByTimestampDesc(userId)
+        return auditLogRepository.findAllByPerformedByIdOrderByTimestampDesc(userId)
                 .stream()
                 .map(auditLogMapper :: toResponse)
                 .toList();

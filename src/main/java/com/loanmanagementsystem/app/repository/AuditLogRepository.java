@@ -11,7 +11,7 @@ import java.util.List;
 @Repository
 public interface AuditLogRepository extends JpaRepository<AuditLog, Long> {
 
-    List<AuditLog> findAllByPerformedByUserIdOrderByTimestampDesc(Long userId);
+    List<AuditLog> findAllByPerformedByIdOrderByTimestampDesc(Long userId);
 
     List<AuditLog> findAllByEntityType(EntityType entityType);
 
