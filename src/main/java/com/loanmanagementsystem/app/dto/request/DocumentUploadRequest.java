@@ -4,6 +4,7 @@ import com.loanmanagementsystem.app.entity.enums.DocumentType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @Data
 @NoArgsConstructor
@@ -20,6 +21,6 @@ public class DocumentUploadRequest {
     @NotBlank(message = "Document name is required")
     private String documentName;
 
-    @NotBlank(message = "Document URL is required")
-    private String documentUrl;
+    @NotBlank(message = "Document file is required")
+    private MultipartFile file;
 }
