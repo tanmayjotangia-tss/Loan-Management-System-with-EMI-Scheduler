@@ -45,11 +45,19 @@ public class LoanPropertiesServiceImplementation implements LoanPropertiesServic
             loanProperties.setMinRequiredCibilScore(updatedProperties.getMinRequiredCibilScore());
         }
 
+        if (updatedProperties.getForeclosureAllowed() != null) {
+            loanProperties.setForeclosureAllowed(updatedProperties.getForeclosureAllowed());
+        }
+
+        if (updatedProperties.getForeclosurePenaltyPercent() != null) {
+            loanProperties.setForeclosurePenaltyPercent(updatedProperties.getForeclosurePenaltyPercent());
+        }
+
         return loanPropertiesRepository.save(loanProperties);
     }
 
     @Override
-    public LoanProperties displayLoanProperties(LoanType loanType) {
+    public LoanProperties getLoanProperties(LoanType loanType) {
         return loanPropertiesRepository.findByLoanType(loanType)
                 .orElseThrow(() -> new RuntimeException("Loan properties not found for type: " + loanType));
     }

@@ -16,6 +16,8 @@ public interface EmiRepository extends JpaRepository<Emi, Long> {
 
     List<Emi> findAllByLoanIdOrderByInstallmentNumberAsc(Long loanId);
 
+    List<Emi> findAllByLoanId(Long loanId);
+
     List<Emi> findAllByStatus(EmiStatus status);
 
     List<Emi> findAllByLoanIdAndStatus(Long loanId, EmiStatus status);

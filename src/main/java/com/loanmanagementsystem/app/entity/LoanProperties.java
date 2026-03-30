@@ -49,4 +49,13 @@ public class LoanProperties {
 
     @Column(name = "min_required_cibil_score", nullable = false)
     private Integer minRequiredCibilScore;
+
+    @Column(name = "foreclosure_allowed", nullable = false)
+    private Boolean foreclosureAllowed;
+
+    @Column(name = "min_emi_before_foreclosure", nullable = false)
+    private Integer minEmiBeforeForeclosure;
+
+    @Column(name = "foreclosure_penalty_percent", precision = 5, scale = 2, nullable = false)
+    private BigDecimal foreclosurePenaltyPercent;
 }

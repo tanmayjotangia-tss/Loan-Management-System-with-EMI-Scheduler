@@ -37,10 +37,12 @@ public class PenaltyServiceImplementation implements PenaltyService {
         LoanProperties loanProperties = loanPropertiesRepository.findByLoanType(loan.getLoanType())
                 .orElseThrow(() -> new RuntimeException("Loan properties not found for type: " + loan.getLoanType()));
 
-        BigDecimal penaltyPercentage;
+        BigDecimal penaltyPercentage= BigDecimal.valueOf(0.0);
         if (reason == PenaltyReason.LATE_PAYMENT) {
             penaltyPercentage = loanProperties.getLatePaymentPenaltyPercentage();
-        } else {
+        }
+        else if(reason == PenaltyReason.MISSED_EMI)
+        {
             penaltyPercentage = loanProperties.getMissedEmiPenaltyPercentage();
         }
 

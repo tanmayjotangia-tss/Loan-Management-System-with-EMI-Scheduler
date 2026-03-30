@@ -75,7 +75,6 @@ public class LoanServiceImplementation implements LoanService {
                 .endDate(endDate)
                 .status(LoanStatus.ACTIVE)
                 .gracePeriodDays(loanProperties.getGracePeriodDays())
-                .foreclosureAllowed(true)
                 .build();
 
         loanRepository.save(loan);

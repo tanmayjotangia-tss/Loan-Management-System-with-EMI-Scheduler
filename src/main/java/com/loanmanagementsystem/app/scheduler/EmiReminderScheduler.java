@@ -3,8 +3,10 @@ package com.loanmanagementsystem.app.scheduler;
 import com.loanmanagementsystem.app.entity.Emi;
 import com.loanmanagementsystem.app.entity.enums.EmiStatus;
 import com.loanmanagementsystem.app.entity.enums.NotificationType;
+import com.loanmanagementsystem.app.entity.enums.PenaltyReason;
 import com.loanmanagementsystem.app.repository.EmiRepository;
 import com.loanmanagementsystem.app.service.NotificationService;
+import com.loanmanagementsystem.app.service.PenaltyService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -23,6 +25,7 @@ public class EmiReminderScheduler {
 
     private final EmiRepository emiRepository;
     private final NotificationService notificationService;
+    private final PenaltyService penaltyService;
 
     @Scheduled(cron = "0 0 0 * * ?")
     @Transactional
@@ -52,7 +55,9 @@ public class EmiReminderScheduler {
             // Mark overdue
             if (emi.getStatus() == EmiStatus.PENDING) {
                 emi.setStatus(EmiStatus.OVERDUE);
+                sendOverdueAlert(emi, daysOverdue);
                 emi.setOverdueMarked(true);
+                penaltyService.applyPenalty(emi.getId(), PenaltyReason.LATE_PAYMENT);
             }
 
             // Weekly alert (corrected)
@@ -60,9 +65,15 @@ public class EmiReminderScheduler {
                 sendOverdueAlert(emi, daysOverdue);
                 emi.setLastOverdueAlertDay((int) daysOverdue);
             }
+
+            if(daysOverdue == 30){
+                penaltyService.applyPenalty(emi.getId(),PenaltyReason.MISSED_EMI);
+                sendMissedEmiAlert(emi);
+            }
         }
 
-        log.info("EMI Scheduler completed: {} reminders, {} overdue processed", upcomingEmis.size(), overdueEmis.size());}
+        log.info("EMI Scheduler completed: {} reminders, {} overdue processed", upcomingEmis.size(), overdueEmis.size());
+    }
 
     private void sendReminder(Emi emi) {
         notificationService.sendNotification(
@@ -81,8 +92,18 @@ public class EmiReminderScheduler {
                 emi.getLoan().getBorrower().getId(),
                 NotificationType.OVERDUE,
                 "Overdue EMI Alert",
-                String.format("EMI overdue by %d days (Loan ID %d)",
+                String.format("EMI overdue by %d days (Loan ID %d). Penalty will be applied.",
                         daysOverdue,
+                        emi.getLoan().getId())
+        );
+    }
+
+    private void sendMissedEmiAlert(Emi emi) {
+        notificationService.sendNotification(
+                emi.getLoan().getBorrower().getId(),
+                NotificationType.OVERDUE,
+                "Missed EMI Alert",
+                String.format("Emi payment missed (Loan ID %d). Penalty will be applied.",
                         emi.getLoan().getId())
         );
     }
