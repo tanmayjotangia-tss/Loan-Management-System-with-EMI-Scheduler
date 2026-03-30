@@ -78,13 +78,6 @@ public class Loan {
     @Column(name = "grace_period_days")
     private Integer gracePeriodDays;
 
-    @Builder.Default
-    @Column(name = "foreclosure_allowed", nullable = false)
-    private Boolean foreclosureAllowed = false;
-
-    @Column(name = "foreclosure_charges", precision = 15, scale = 2)
-    private BigDecimal foreclosureCharges;
-
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

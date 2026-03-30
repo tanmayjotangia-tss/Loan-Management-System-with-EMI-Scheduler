@@ -4,6 +4,7 @@ import com.loanmanagementsystem.app.dto.request.PaymentRequest;
 import com.loanmanagementsystem.app.dto.response.PaymentResponse;
 import com.loanmanagementsystem.app.entity.Emi;
 import com.loanmanagementsystem.app.entity.Loan;
+import com.loanmanagementsystem.app.entity.LoanProperties;
 import com.loanmanagementsystem.app.entity.Payment;
 import com.loanmanagementsystem.app.entity.enums.EmiStatus;
 import com.loanmanagementsystem.app.entity.enums.LoanStatus;
@@ -27,6 +28,8 @@ public class PaymentServiceImplementation implements PaymentService {
     private final PaymentRepository paymentRepository;
     private final LoanRepository loanRepository;
     private final EmiRepository emiRepository;
+    private final EmiService emiService;
+    private final LoanPropertiesService loanPropertiesService;
     private final PaymentMapper paymentMapper;
     private final NotificationService notificationService;
 
@@ -95,13 +98,21 @@ public class PaymentServiceImplementation implements PaymentService {
             throw new RuntimeException("Cannot make payment on a closed loan");
         }
 
-        if (!loan.getForeclosureAllowed()) {
-            throw new RuntimeException("Foreclosure is not allowed for this loan");
+        LoanProperties loanProperties=loanPropertiesService.getLoanProperties(loan.getLoanType());
+        if(loanProperties==null){
+            throw new RuntimeException("Loan Properties Not Found.");
         }
+
+        if(loanProperties.getMinEmiBeforeForeclosure()<=emiService.getTotalEmiByLoan(loan.getId())){
+            throw new RuntimeException("Minimum "+loanProperties.getMinEmiBeforeForeclosure()+" EMIs required.");
+        }
+
 
         if(loan.getTotalPayableAmount().compareTo(request.getAmountPaid()) > 0) {
             throw new RuntimeException("Amount paid is less than emi amount");
         }
+
+        // check payment >= totalPendingPayment -> one new entity surplusAmount
 
         Payment payment = paymentMapper.toEntity(request);
         payment.setLoan(loan);
@@ -109,8 +120,13 @@ public class PaymentServiceImplementation implements PaymentService {
         payment.setPaidAt(LocalDateTime.now());
 
         paymentRepository.save(payment);
+
+        // Mark all emi&penalties paid
+
         return paymentMapper.toResponse(payment);
     }
+
+    //one function to getTotalPendingAmountForLoanId
 
     @Override
     public List<PaymentResponse> getPaymentsByLoanId(Long loanId) {

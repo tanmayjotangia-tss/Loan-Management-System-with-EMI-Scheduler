@@ -62,6 +62,9 @@ public class Emi {
     @Column(name = "overdue_marked", nullable = false)
     private boolean overdueMarked = false;
 
+    @Column(name = "missed_emi_marked", nullable = false)
+    private boolean missedEmiMarked = false;
+
     @Column(name = "last_overdue_alert_day")
     private Integer lastOverdueAlertDay = 0;
 
