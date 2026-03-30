@@ -1,6 +1,9 @@
 package com.loanmanagementsystem.app.service;
 
+import com.loanmanagementsystem.app.dto.response.EmiResponse;
+import com.loanmanagementsystem.app.dto.response.LoanResponse;
 import com.loanmanagementsystem.app.entity.Emi;
+import com.loanmanagementsystem.app.entity.enums.EmiStatus;
 import com.loanmanagementsystem.app.repository.EmiRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,5 +25,17 @@ public class EmiServiceImplementation implements EmiService{
             return 0;
         }
         return emis.size();
+    }
+
+    public List<EmiResponse> getUnpaidEmis(Long loanId){
+        double totalPendingEmiAmount=0L;
+
+        List<Emi> pendingEmis=emiRepository.findAllByLoanIdAndStatus(loanId, EmiStatus.PENDING);
+
+        if(pendingEmis!=null){
+            for(Emi emi:pendingEmis){
+                totalPendingEmiAmount+=emi.getEmiAmount();
+            }
+        }
     }
 }

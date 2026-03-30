@@ -10,4 +10,5 @@ public interface PaymentService {
     PaymentResponse makeForeclosurePayment(PaymentRequest request);
     List<PaymentResponse> getPaymentsByLoanId(Long loanId);
     List<PaymentResponse> getPaymentsByEmiId(Long emiId);
+    Long getTotalPendingPayment(Long loanId);
 }

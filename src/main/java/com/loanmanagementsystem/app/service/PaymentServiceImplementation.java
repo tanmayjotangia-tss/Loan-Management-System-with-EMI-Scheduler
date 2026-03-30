@@ -143,4 +143,9 @@ public class PaymentServiceImplementation implements PaymentService {
                 .map(paymentMapper::toResponse)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public Long getTotalPendingPayment(Long loanId) {
+        return 0L;
+    }
 }
