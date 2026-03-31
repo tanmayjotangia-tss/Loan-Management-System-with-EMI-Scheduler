@@ -2,6 +2,7 @@ package com.loanmanagementsystem.app.service;
 import com.loanmanagementsystem.app.dto.request.UpdateUserRequest;
 import com.loanmanagementsystem.app.dto.response.BorrowerResponse;
 import com.loanmanagementsystem.app.entity.Borrower;
+import com.loanmanagementsystem.app.exception.BadRequestException;
 import com.loanmanagementsystem.app.mapper.BorrowerMapper;
 import com.loanmanagementsystem.app.repository.BorrowerRepository;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +19,7 @@ public class BorrowerServiceImplementation implements BorrowerService {
     @Override
     public BorrowerResponse getBorrowerById(Long id) {
         Borrower borrower = borrowerRepository.findById(id)
-        .orElseThrow(() -> new RuntimeException("Borrower not found with id: " + id));
+        .orElseThrow(() -> new BadRequestException("Borrower not found with id: " + id));
         return borrowerMapper.toResponse(borrower);
     }
 

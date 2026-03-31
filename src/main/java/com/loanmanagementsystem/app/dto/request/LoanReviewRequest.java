@@ -19,5 +19,4 @@ public class LoanReviewRequest {
 
     private String officerComment;
 
-    private BigDecimal interestRate;
 }

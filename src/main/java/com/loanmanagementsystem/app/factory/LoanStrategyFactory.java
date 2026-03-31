@@ -5,7 +5,9 @@ import com.loanmanagementsystem.app.stategy.FlatRate;
 import com.loanmanagementsystem.app.stategy.LoanStrategy;
 import com.loanmanagementsystem.app.stategy.ReducingBalance;
 import com.loanmanagementsystem.app.stategy.StepUp;
+import org.springframework.stereotype.Component;
 
+@Component
 public class LoanStrategyFactory {
 
     public LoanStrategy getStrategy(StrategyType type) {

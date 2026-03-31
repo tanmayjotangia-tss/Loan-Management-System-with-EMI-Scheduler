@@ -32,8 +32,6 @@ public class LoanResponse {
     private LocalDate endDate;
     private LoanStatus status;
     private Integer gracePeriodDays;
-    private Boolean foreclosureAllowed;
-    private BigDecimal foreclosureCharges;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

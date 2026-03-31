@@ -81,6 +81,7 @@ public class PenaltyServiceImplementation implements PenaltyService {
             penalty.setIsPaid(true);
             penalty.setPaidDate(LocalDate.now());
         }
+        penaltyRepository.saveAll(penalties);
     }
 
     @Override

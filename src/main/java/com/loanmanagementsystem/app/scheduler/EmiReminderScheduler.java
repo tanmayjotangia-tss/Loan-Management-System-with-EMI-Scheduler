@@ -1,10 +1,13 @@
 package com.loanmanagementsystem.app.scheduler;
 
+import com.loanmanagementsystem.app.entity.Borrower;
 import com.loanmanagementsystem.app.entity.Emi;
 import com.loanmanagementsystem.app.entity.enums.EmiStatus;
 import com.loanmanagementsystem.app.entity.enums.NotificationType;
 import com.loanmanagementsystem.app.entity.enums.PenaltyReason;
+import com.loanmanagementsystem.app.repository.BorrowerRepository;
 import com.loanmanagementsystem.app.repository.EmiRepository;
+import com.loanmanagementsystem.app.service.CreditScoreService;
 import com.loanmanagementsystem.app.service.NotificationService;
 import com.loanmanagementsystem.app.service.PenaltyService;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +30,8 @@ public class EmiReminderScheduler {
     private final EmiRepository emiRepository;
     private final NotificationService notificationService;
     private final PenaltyService penaltyService;
+    private final CreditScoreService creditScoreService;
+    private final BorrowerRepository borrowerRepository;
 
     @Scheduled(cron = "0 0 0 * * ?")
     @Transactional
@@ -44,6 +49,7 @@ public class EmiReminderScheduler {
             sendReminder(emi);
             emi.setReminderSent(true);
         }
+        emiRepository.saveAll(upcomingEmis);
 
         List<Emi> todayDueEmis=emiRepository.findAllByDueDateAndStatus(today,EmiStatus.UPCOMING);
 
@@ -51,6 +57,7 @@ public class EmiReminderScheduler {
             emi.setStatus(EmiStatus.PENDING);
             dueDayReminder(emi);
         }
+        emiRepository.saveAll(todayDueEmis);
 
         List<Emi> overdueEmis = emiRepository.findOverdueEmis(today);
 
@@ -66,9 +73,17 @@ public class EmiReminderScheduler {
                 sendOverdueAlert(emi, daysOverdue);
                 emi.setOverdueMarked(true);
                 penaltyService.applyPenalty(emi.getId(), PenaltyReason.LATE_PAYMENT);
+
+                Borrower borrower = emi.getLoan().getBorrower();
+
+                int score = creditScoreService.updateOnOverdue(borrower.getCreditScore());
+
+                borrower.setCreditScore(score);
+                borrowerRepository.save(borrower);
+
             }
 
-            // Weekly alert (corrected)
+            // Weekly alert
             if (daysOverdue >= 7 && daysOverdue - emi.getLastOverdueAlertDay() >= 7) {
                 sendOverdueAlert(emi, daysOverdue);
                 emi.setLastOverdueAlertDay((int) daysOverdue);
@@ -77,7 +92,16 @@ public class EmiReminderScheduler {
             if(daysOverdue == MISSED_EMI_THRESHOLD){
                 penaltyService.applyPenalty(emi.getId(),PenaltyReason.MISSED_EMI);
                 sendMissedEmiAlert(emi);
+
+                Borrower borrower = emi.getLoan().getBorrower();
+
+                int score = creditScoreService.updateOnMissedEmi(borrower.getCreditScore());
+
+                borrower.setCreditScore(score);
+                borrowerRepository.save(borrower);
+                emi.setMissedEmiMarked(true);
             }
+            emiRepository.save(emi);
         }
 
         log.info("EMI Scheduler completed: {} reminders, {} overdue processed", upcomingEmis.size(), overdueEmis.size());

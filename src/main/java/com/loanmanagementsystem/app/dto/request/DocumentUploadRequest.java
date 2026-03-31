@@ -21,6 +21,6 @@ public class DocumentUploadRequest {
     @NotBlank(message = "Document name is required")
     private String documentName;
 
-    @NotBlank(message = "Document file is required")
+    @NotNull(message = "Document file is required")
     private MultipartFile file;
 }
