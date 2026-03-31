@@ -9,25 +9,37 @@ import lombok.*;
 @Builder
 public class ApiResponse<T> {
 
-    private boolean success;
+    private int status;
     private String message;
     private T data;
 
-    public static <T> ApiResponse<T> success(String message, T data) {
+    public static <T> ApiResponse<T> success(int status, String message, T data) {
         return ApiResponse.<T>builder()
-                .success(true)
+                .status(status)
                 .message(message)
                 .data(data)
                 .build();
     }
 
     public static <T> ApiResponse<T> success(T data) {
-        return success("Success", data);
+        return success(200, "Success", data);
     }
 
-    public static <T> ApiResponse<T> error(String message) {
+    public static <T> ApiResponse<T> created(T data) {
+        return success(201, "Resource created successfully", data);
+    }
+
+    public static <T> ApiResponse<T> noContent() {
         return ApiResponse.<T>builder()
-                .success(false)
+                .status(204)
+                .message("No content")
+                .data(null)
+                .build();
+    }
+
+    public static <T> ApiResponse<T> error(int status, String message) {
+        return ApiResponse.<T>builder()
+                .status(status)
                 .message(message)
                 .data(null)
                 .build();
