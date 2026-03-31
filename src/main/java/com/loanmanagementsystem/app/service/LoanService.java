@@ -15,5 +15,4 @@ public interface LoanService {
     List<LoanResponse> getLoansByType(LoanType loanType);
     List<LoanResponse> getLoansByStatus(LoanStatus status);
     LoanResponse closeLoan(Long loanId);
-    LoanResponse processForeclosure(Long loanId);
 }

@@ -82,7 +82,7 @@ public class LoanServiceImplementation implements LoanService {
                 .gracePeriodDays(loanProperties.getGracePeriodDays())
                 .build();
 
-        loanRepository.save(loan);
+//        loanRepository.save(loan);
 
         List<Emi> emiList=strategyFactory.getStrategy(type).generateSchedule(loan);
         if (emiList.isEmpty()) {
@@ -153,24 +153,15 @@ public class LoanServiceImplementation implements LoanService {
             throw new RuntimeException("Loan is already closed");
         }
 
-        List<Emi> pendingEmis = emiRepository.findAllByLoanIdAndStatus(loanId, EmiStatus.PENDING);
-        List<Emi> overdueEmis = emiRepository.findAllByLoanIdAndStatus(loanId, EmiStatus.OVERDUE);
+        boolean hasUnpaidEmis = emiRepository
+                .existsByLoanIdAndStatusNot(loanId, EmiStatus.PAID);
 
-        if (!pendingEmis.isEmpty() || !overdueEmis.isEmpty()) {
-            throw new RuntimeException("Cannot close loan. There are " + pendingEmis.size() + " pending and " + overdueEmis.size() + " overdue EMIs remaining");
+        if (hasUnpaidEmis) {
+            throw new RuntimeException("Cannot close loan. All EMIs must be paid.");
         }
 
         loan.setStatus(LoanStatus.CLOSED);
         loanRepository.save(loan);
-        return loanMapper.toResponse(loan);
-    }
-
-    @Override
-    public LoanResponse processForeclosure(Long loanId) {
-        Loan loan = loanRepository.findById(loanId)
-                .orElseThrow(() -> new RuntimeException("Loan not found with id: " + loanId));
-
-
 
         return loanMapper.toResponse(loan);
     }

@@ -17,7 +17,7 @@ public class EmiServiceImplementation implements EmiService{
     private final EmiRepository emiRepository;
 
     @Override
-    public Integer getTotalEmiByLoan(Long loanId) {
+    public Integer getTotalUnpaidEmiByLoan(Long loanId) {
 
         List<Emi> emis= emiRepository.findAllActiveEmisByLoanId(loanId);
 

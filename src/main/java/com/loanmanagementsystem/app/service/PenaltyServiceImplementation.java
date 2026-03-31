@@ -72,7 +72,7 @@ public class PenaltyServiceImplementation implements PenaltyService {
     }
 
     public void markPenaltiesPaid(Long loanId){
-        List<Penalty> penalties=penaltyRepository.findAllByLoanId(loanId);
+        List<Penalty> penalties=penaltyRepository.findAllByLoanIdAndIsPaidFalse(loanId);
 
         if(penalties==null){
             return;

@@ -63,10 +63,4 @@ public class LoanController {
         LoanResponse response = loanService.closeLoan(loanId);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
-
-    @PostMapping("/{loanId}/foreclose")
-    public ResponseEntity<ApiResponse<LoanResponse>> processForeclosure(@PathVariable Long loanId) {
-        LoanResponse response = loanService.processForeclosure(loanId);
-        return ResponseEntity.ok(ApiResponse.success(response));
-    }
 }
