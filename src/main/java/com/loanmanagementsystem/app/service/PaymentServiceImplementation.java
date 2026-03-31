@@ -60,7 +60,7 @@ public class PaymentServiceImplementation implements PaymentService {
         BigDecimal totalAvailableAmount = request.getAmountPaid().add(borrower.getSurplusAmount());
         BigDecimal payableAmount = emi.getEmiAmount().add(penaltyService.getTotalPendingPenalties(loan.getId()));
 
-        if (totalAvailableAmount.compareTo(payableAmount) >= 0) {
+        if (totalAvailableAmount.compareTo(payableAmount) < 0) {
             throw new RuntimeException("Amount paid is less than needed amount");
         }
 
@@ -119,7 +119,7 @@ public class PaymentServiceImplementation implements PaymentService {
         BigDecimal totalPayableAmount = loan.getTotalPayableAmount().add(penaltyService.getTotalPendingPenalties(loan.getId())).add(chargeOnForeclosure);
         BigDecimal totalAvailableAmount = borrower.getSurplusAmount().add(request.getAmountPaid());
 
-        if (totalAvailableAmount.compareTo(totalPayableAmount) >= 0) {
+        if (totalAvailableAmount.compareTo(totalPayableAmount) < 0) {
             throw new RuntimeException("Amount paid is less than required amount");
         }
 
@@ -131,6 +131,7 @@ public class PaymentServiceImplementation implements PaymentService {
         paymentRepository.save(payment);
 
         loan.setTotalPayableAmount(BigDecimal.ZERO);
+        loan.setStatus(LoanStatus.CLOSED);
         loanRepository.save(loan);
 
         borrower.setSurplusAmount(totalAvailableAmount.subtract(totalPayableAmount));

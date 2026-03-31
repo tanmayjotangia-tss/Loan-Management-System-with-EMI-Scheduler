@@ -7,9 +7,7 @@ import com.loanmanagementsystem.app.entity.Borrower;
 import com.loanmanagementsystem.app.entity.LoanApplication;
 import com.loanmanagementsystem.app.entity.LoanOfficer;
 import com.loanmanagementsystem.app.entity.LoanProperties;
-import com.loanmanagementsystem.app.entity.enums.LoanApplicationStatus;
-import com.loanmanagementsystem.app.entity.enums.LoanType;
-import com.loanmanagementsystem.app.entity.enums.NotificationType;
+import com.loanmanagementsystem.app.entity.enums.*;
 import com.loanmanagementsystem.app.mapper.LoanApplicationMapper;
 import com.loanmanagementsystem.app.repository.BorrowerRepository;
 import com.loanmanagementsystem.app.repository.LoanApplicationRepository;
@@ -18,6 +16,8 @@ import com.loanmanagementsystem.app.repository.LoanPropertiesRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -56,9 +56,26 @@ public class LoanApplicationServiceImplementation implements LoanApplicationServ
         LoanApplication loanApplication = loanApplicationMapper.toEntity(request);
         loanApplication.setBorrower(borrower);
 
-        //Calculate DTI
+        BigDecimal dti=calculateDti(request);
 
-        //Calculate Risk
+        RiskCategory riskCategory = calculateRisk(dti);
+
+        StrategyType strategyType=decideStrategy(dti,request.getRequestedTenureMonths());
+        LoanApplicationStatus status=LoanApplicationStatus.PENDING;
+        if(strategyType==null){
+            status=LoanApplicationStatus.REJECTED;
+            notificationService.sendNotification(
+                    borrowerId,
+                    NotificationType.APPLICATION,
+                    "Loan Application Submitted",
+                    "Your loan application for " + request.getRequestedAmount() + " has been Rejected."
+            );
+            loanApplicationRepository.save(loanApplication);
+            return loanApplicationMapper.toResponse(loanApplication);
+        }
+
+        loanApplication.setRiskCategory(riskCategory);
+        loanApplication.setStatus(status);
 
         loanApplicationRepository.save(loanApplication);
 
@@ -70,6 +87,54 @@ public class LoanApplicationServiceImplementation implements LoanApplicationServ
         );
 
         return loanApplicationMapper.toResponse(loanApplication);
+    }
+
+    private RiskCategory calculateRisk(BigDecimal dtiPercentage) {
+
+        if (dtiPercentage.compareTo(BigDecimal.valueOf(20)) < 0) {
+            return RiskCategory.LOW;
+        } else if (dtiPercentage.compareTo(BigDecimal.valueOf(40)) <= 0) {
+            return RiskCategory.MEDIUM;
+        } else {
+            return RiskCategory.HIGH;
+        }
+    }
+
+    private StrategyType decideStrategy(BigDecimal dti, int tenureMonths) {
+
+        if (dti.compareTo(BigDecimal.valueOf(20)) < 0) {
+            return StrategyType.FLAT_RATE_LOAN;
+        }
+
+        if (dti.compareTo(BigDecimal.valueOf(40)) <= 0) {
+            return tenureMonths < 24
+                    ? StrategyType.REDUCING_BALANCE_LOAN
+                    : StrategyType.STEP_UP_EMI_LOAN;
+        }
+
+        return null;
+    }
+
+    private BigDecimal calculateDti(LoanApplicationRequest request) {
+
+        BigDecimal monthlyIncome = request.getMonthlyIncome();
+        if (monthlyIncome == null || monthlyIncome.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Monthly income must be greater than zero");
+        }
+
+        BigDecimal currentEmi = request.getCurrentEmi() == null
+                ? BigDecimal.ZERO
+                : request.getCurrentEmi();
+
+        BigDecimal newLoanEmi = request.getRequestedAmount()
+                .divide(BigDecimal.valueOf(request.getRequestedTenureMonths()), 6, RoundingMode.HALF_UP);
+
+        BigDecimal totalDebt = currentEmi.add(newLoanEmi);
+
+        return totalDebt
+                .divide(monthlyIncome, 6, RoundingMode.HALF_UP)
+                .multiply(BigDecimal.valueOf(100))
+                .setScale(2, RoundingMode.HALF_UP);
     }
 
     @Override

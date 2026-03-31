@@ -20,7 +20,7 @@ public class EmiServiceImplementation implements EmiService{
     @Override
     public Integer getTotalEmiByLoan(Long loanId) {
 
-        List<Emi> emis= emiRepository.findAllByLoanIdOrderByInstallmentNumberAsc(loanId);
+        List<Emi> emis= emiRepository.findAllActiveEmisByLoanId(loanId);
 
         if(emis==null) {
             return 0;

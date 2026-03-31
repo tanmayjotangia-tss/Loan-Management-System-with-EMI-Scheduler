@@ -52,5 +52,16 @@ public interface EmiRepository extends JpaRepository<Emi, Long> {
     """)
     List<Emi> findOverdueEmis(@Param("today") LocalDate today);
 
+    @Query("""
+    SELECT e FROM Emi e
+    WHERE e.loan.id = :loanId
+    AND e.status IN (
+        com.loanmanagementsystem.app.entity.enums.EmiStatus.PAID,
+        com.loanmanagementsystem.app.entity.enums.EmiStatus.PENDING,
+        com.loanmanagementsystem.app.entity.enums.EmiStatus.OVERDUE
+    )
+""")
+    List<Emi> findAllActiveEmisByLoanId(@Param("loanId") Long loanId);
+
     Optional<Emi> findByLoanIdAndInstallmentNumber(Long loanId, Integer installmentNumber);
 }
