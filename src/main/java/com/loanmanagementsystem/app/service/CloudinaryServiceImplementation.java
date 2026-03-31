@@ -17,15 +17,42 @@ public class CloudinaryServiceImplementation implements CloudinaryService {
     @Override
     public String uploadFile(MultipartFile file) {
         try {
+            // ✅ 1. Check empty
+            if (file.isEmpty()) {
+                throw new RuntimeException("File is empty");
+            }
+
+            String contentType = file.getContentType();
+            String filename = file.getOriginalFilename();
+
+            if (contentType == null || filename == null) {
+                throw new RuntimeException("Invalid file");
+            }
+
+            // ✅ 2. Allow PDF + Images
+            boolean isPdf = contentType.equals("application/pdf") &&
+                    filename.toLowerCase().endsWith(".pdf");
+
+            boolean isImage = contentType.startsWith("image/");
+
+            if (!isPdf && !isImage) {
+                throw new RuntimeException("Only PDF and Image files are allowed");
+            }
+
+            // ✅ 3. Decide resource_type
+            String resourceType = isPdf ? "raw" : "image";
+
+            // ✅ 4. Upload
             @SuppressWarnings("unchecked")
             Map<String, Object> uploadResult = cloudinary.uploader().upload(
-                    file.getInputStream(),
-                    ObjectUtils.asMap("resource_type", "raw")
+                    file.getBytes(),
+                    ObjectUtils.asMap("resource_type", resourceType)
             );
 
             Object url = uploadResult.get("secure_url");
+
             if (url == null) {
-                throw new RuntimeException("Cloudinary upload failed: secure_url missing");
+                throw new RuntimeException("Cloudinary upload failed");
             }
 
             return url.toString();
