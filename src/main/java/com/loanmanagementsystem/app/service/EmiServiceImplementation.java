@@ -5,6 +5,7 @@ import com.loanmanagementsystem.app.dto.response.LoanResponse;
 import com.loanmanagementsystem.app.entity.Emi;
 import com.loanmanagementsystem.app.entity.enums.EmiStatus;
 import com.loanmanagementsystem.app.repository.EmiRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -29,6 +30,7 @@ public class EmiServiceImplementation implements EmiService{
     }
 
     @Override
+    @Transactional
     public void markEmisPaid(Long loanId) {
         List<Emi> unpaidEmis=emiRepository.findUnpaidEmisByLoanId(loanId);
 
@@ -39,8 +41,18 @@ public class EmiServiceImplementation implements EmiService{
             emi.setStatus(EmiStatus.PAID);
             emi.setPaymentDate(LocalDate.now());
             emi.setPaidAmount(emi.getEmiAmount());
-            emiRepository.save(emi);
         }
+        emiRepository.saveAll(unpaidEmis);
+    }
+
+    @Override
+    public Integer getTotalOverdueEmis(Long loanId){
+        List<Emi> overdueEmis=emiRepository.findAllByLoanIdAndStatus(loanId,EmiStatus.OVERDUE);
+
+        if(overdueEmis==null){
+            return 0;
+        }
+        return overdueEmis.size();
     }
 
 }

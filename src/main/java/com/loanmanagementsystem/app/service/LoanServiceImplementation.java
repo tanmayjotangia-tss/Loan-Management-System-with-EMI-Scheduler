@@ -5,19 +5,20 @@ import com.loanmanagementsystem.app.entity.Emi;
 import com.loanmanagementsystem.app.entity.Loan;
 import com.loanmanagementsystem.app.entity.LoanApplication;
 import com.loanmanagementsystem.app.entity.LoanProperties;
-import com.loanmanagementsystem.app.entity.enums.EmiStatus;
-import com.loanmanagementsystem.app.entity.enums.LoanApplicationStatus;
-import com.loanmanagementsystem.app.entity.enums.LoanStatus;
-import com.loanmanagementsystem.app.entity.enums.LoanType;
+import com.loanmanagementsystem.app.entity.enums.*;
+import com.loanmanagementsystem.app.exception.BadRequestException;
+import com.loanmanagementsystem.app.factory.LoanStrategyFactory;
 import com.loanmanagementsystem.app.mapper.LoanMapper;
 import com.loanmanagementsystem.app.repository.EmiRepository;
 import com.loanmanagementsystem.app.repository.LoanApplicationRepository;
 import com.loanmanagementsystem.app.repository.LoanPropertiesRepository;
 import com.loanmanagementsystem.app.repository.LoanRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -31,11 +32,13 @@ public class LoanServiceImplementation implements LoanService {
     private final LoanPropertiesRepository loanPropertiesRepository;
     private final EmiRepository emiRepository;
     private final LoanMapper loanMapper;
+    private final LoanStrategyFactory strategyFactory;
 
+    @Transactional
     @Override
-    public LoanResponse createLoanFromApplication(Long applicationId) {
+    public LoanResponse createLoanFromApplication(Long applicationId, StrategyType type) {
         LoanApplication loanApplication = loanApplicationRepository.findById(applicationId)
-                .orElseThrow(() -> new RuntimeException("Loan application not found with id: " + applicationId));
+                .orElseThrow(() -> new BadRequestException("Loan application not found with id: " + applicationId));
 
         if (loanApplication.getStatus() != LoanApplicationStatus.APPROVED) {
             throw new RuntimeException("Loan application must be APPROVED to create a loan. Current status: " + loanApplication.getStatus());
@@ -53,9 +56,13 @@ public class LoanServiceImplementation implements LoanService {
         BigDecimal principalAmount = loanApplication.getRequestedAmount();
         Integer tenureMonths = loanApplication.getRequestedTenureMonths();
 
-        // Strategy
-
-        // EMI
+        if(type==null){
+            type=loanApplication.getSuggestedStrategy();
+        }
+        if (type == null) {
+            throw new RuntimeException("Strategy type cannot be null");
+        }
+        loanApplication.setFinalStrategy(type);
 
         LocalDate startDate = LocalDate.now();
         LocalDate endDate = startDate.plusMonths(tenureMonths);
@@ -68,9 +75,7 @@ public class LoanServiceImplementation implements LoanService {
                 .principalAmount(principalAmount)
                 .interestRate(interestRate)
                 .tenureMonths(tenureMonths)
-//                .emiAmount(emiAmount)
-//                .strategyType(strategyType)
-//                .totalPayableAmount(totalPayableAmount)
+                .strategyType(type)
                 .startDate(startDate)
                 .endDate(endDate)
                 .status(LoanStatus.ACTIVE)
@@ -79,7 +84,22 @@ public class LoanServiceImplementation implements LoanService {
 
         loanRepository.save(loan);
 
-        // Generate EMI schedule
+        List<Emi> emiList=strategyFactory.getStrategy(type).generateSchedule(loan);
+        if (emiList.isEmpty()) {
+            throw new RuntimeException("EMI schedule generation failed");
+        }
+        loan.setEmiAmount(emiList.get(0).getEmiAmount());
+        BigDecimal totalPayableAmount=BigDecimal.ZERO;
+
+        for (Emi emi : emiList) {
+            totalPayableAmount = totalPayableAmount.add(emi.getEmiAmount());
+        }
+        totalPayableAmount = totalPayableAmount.setScale(2, RoundingMode.HALF_UP);
+
+        loan.setTotalPayableAmount(totalPayableAmount);
+
+        loanRepository.save(loan);
+        emiRepository.saveAll(emiList);
 
         return loanMapper.toResponse(loan);
     }
@@ -124,6 +144,7 @@ public class LoanServiceImplementation implements LoanService {
     }
 
     @Override
+    @Transactional
     public LoanResponse closeLoan(Long loanId) {
         Loan loan = loanRepository.findById(loanId)
                 .orElseThrow(() -> new RuntimeException("Loan not found with id: " + loanId));

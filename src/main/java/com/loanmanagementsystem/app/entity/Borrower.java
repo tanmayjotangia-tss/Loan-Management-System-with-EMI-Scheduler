@@ -23,8 +23,8 @@ public class Borrower extends User {
     @Column(name = "current_emi_amount", precision = 15, scale = 2)
     private BigDecimal currentEmiAmount;
 
-    @Column(name = "credit_score")
-    private Integer creditScore;
+    @Column(name = "credit_score",nullable = false)
+    private Integer creditScore=-1;
 
     @Column(name = "bank_account_number")
     private String bankAccountNumber;
@@ -33,7 +33,7 @@ public class Borrower extends User {
     private String ifscCode;
 
     @Column(name= "surplus_amount", precision = 15, scale = 2)
-    private BigDecimal surplusAmount;
+    private BigDecimal surplusAmount= BigDecimal.ZERO;
 
     @OneToMany(mappedBy = "borrower", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<LoanApplication> loanApplications = new ArrayList<>();

@@ -4,6 +4,7 @@ import com.loanmanagementsystem.app.dto.response.ApiResponse;
 import com.loanmanagementsystem.app.dto.response.LoanResponse;
 import com.loanmanagementsystem.app.entity.enums.LoanStatus;
 import com.loanmanagementsystem.app.entity.enums.LoanType;
+import com.loanmanagementsystem.app.entity.enums.StrategyType;
 import com.loanmanagementsystem.app.service.LoanService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -22,8 +23,8 @@ public class LoanController {
     private final LoanService loanService;
 
     @PostMapping("/application/{applicationId}")
-    public ResponseEntity<ApiResponse<LoanResponse>> createLoanFromApplication(@PathVariable Long applicationId) {
-        LoanResponse response = loanService.createLoanFromApplication(applicationId);
+    public ResponseEntity<ApiResponse<LoanResponse>> createLoanFromApplication(@PathVariable Long applicationId, @RequestParam StrategyType type) {
+        LoanResponse response = loanService.createLoanFromApplication(applicationId, type);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.created(response));
     }
 

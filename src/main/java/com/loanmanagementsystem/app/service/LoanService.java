@@ -5,9 +5,10 @@ import java.util.List;
 import com.loanmanagementsystem.app.dto.response.LoanResponse;
 import com.loanmanagementsystem.app.entity.enums.LoanStatus;
 import com.loanmanagementsystem.app.entity.enums.LoanType;
+import com.loanmanagementsystem.app.entity.enums.StrategyType;
 
 public interface LoanService {
-    LoanResponse createLoanFromApplication(Long applicationId);
+    LoanResponse createLoanFromApplication(Long applicationId, StrategyType type) ;
     List<LoanResponse> getAllLoans();
     LoanResponse getLoanById(Long loanId);
     List<LoanResponse> getLoansByBorrowerId(Long borrowerId);

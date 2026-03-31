@@ -8,6 +8,7 @@ import com.loanmanagementsystem.app.entity.LoanApplication;
 import com.loanmanagementsystem.app.entity.LoanOfficer;
 import com.loanmanagementsystem.app.entity.LoanProperties;
 import com.loanmanagementsystem.app.entity.enums.*;
+import com.loanmanagementsystem.app.exception.BadRequestException;
 import com.loanmanagementsystem.app.mapper.LoanApplicationMapper;
 import com.loanmanagementsystem.app.repository.BorrowerRepository;
 import com.loanmanagementsystem.app.repository.LoanApplicationRepository;
@@ -36,7 +37,7 @@ public class LoanApplicationServiceImplementation implements LoanApplicationServ
     @Override
     public LoanApplicationResponse applyForLoan(Long borrowerId, LoanApplicationRequest request) {
         Borrower borrower = borrowerRepository.findById(borrowerId)
-                .orElseThrow(() -> new RuntimeException("Borrower not found"));
+                .orElseThrow(() -> new BadRequestException("Borrower not found"));
 
         LoanProperties loanProperties =loanPropertiesRepository.findByLoanType(request.getLoanType())
                 .orElseThrow(() -> new RuntimeException("Loan properties not found"));
@@ -57,13 +58,16 @@ public class LoanApplicationServiceImplementation implements LoanApplicationServ
         loanApplication.setBorrower(borrower);
 
         BigDecimal dti=calculateDti(request);
+        loanApplication.setCalculatedDti(dti);
 
-        RiskCategory riskCategory = calculateRisk(dti);
+        RiskCategory riskCategory = calculateRisk(dti,borrower.getCreditScore());
 
-        StrategyType strategyType=decideStrategy(dti,request.getRequestedTenureMonths());
+        loanApplication.setRiskCategory(riskCategory);
+        StrategyType strategyType=decideStrategy(dti,request.getRequestedTenureMonths(),borrower.getCreditScore());
+
         LoanApplicationStatus status=LoanApplicationStatus.PENDING;
         if(strategyType==null){
-            status=LoanApplicationStatus.REJECTED;
+            loanApplication.setStatus(LoanApplicationStatus.REJECTED);
             notificationService.sendNotification(
                     borrowerId,
                     NotificationType.APPLICATION,
@@ -74,7 +78,7 @@ public class LoanApplicationServiceImplementation implements LoanApplicationServ
             return loanApplicationMapper.toResponse(loanApplication);
         }
 
-        loanApplication.setRiskCategory(riskCategory);
+        loanApplication.setSuggestedStrategy(strategyType);
         loanApplication.setStatus(status);
 
         loanApplicationRepository.save(loanApplication);
@@ -89,18 +93,44 @@ public class LoanApplicationServiceImplementation implements LoanApplicationServ
         return loanApplicationMapper.toResponse(loanApplication);
     }
 
-    private RiskCategory calculateRisk(BigDecimal dtiPercentage) {
+    private RiskCategory calculateRisk(BigDecimal dti, int creditScore) {
 
-        if (dtiPercentage.compareTo(BigDecimal.valueOf(20)) < 0) {
-            return RiskCategory.LOW;
-        } else if (dtiPercentage.compareTo(BigDecimal.valueOf(40)) <= 0) {
-            return RiskCategory.MEDIUM;
-        } else {
+        if (creditScore == -1) {
+            creditScore = 650;
+        }
+        if (creditScore < 550 || dti.compareTo(BigDecimal.valueOf(50)) > 0) {
             return RiskCategory.HIGH;
         }
+        if (creditScore < 700 || dti.compareTo(BigDecimal.valueOf(30)) > 0) {
+            return RiskCategory.MEDIUM;
+        }
+
+        return RiskCategory.LOW;
     }
 
-    private StrategyType decideStrategy(BigDecimal dti, int tenureMonths) {
+    private StrategyType decideStrategy(BigDecimal dti, int tenureMonths, int creditScore) {
+
+        if (creditScore == -1) {
+            creditScore = 650;
+        }
+        if (creditScore < 550) {
+            return null;
+        }
+        if (creditScore < 650) {
+            if (dti.compareTo(BigDecimal.valueOf(30)) > 0) {
+                return null;
+            }
+            return StrategyType.FLAT_RATE_LOAN;
+        }
+
+        if (creditScore < 750) {
+            if (dti.compareTo(BigDecimal.valueOf(40)) <= 0) {
+                return tenureMonths < 24
+                        ? StrategyType.REDUCING_BALANCE_LOAN
+                        : StrategyType.STEP_UP_EMI_LOAN;
+            }
+            return StrategyType.FLAT_RATE_LOAN;
+        }
 
         if (dti.compareTo(BigDecimal.valueOf(20)) < 0) {
             return StrategyType.FLAT_RATE_LOAN;

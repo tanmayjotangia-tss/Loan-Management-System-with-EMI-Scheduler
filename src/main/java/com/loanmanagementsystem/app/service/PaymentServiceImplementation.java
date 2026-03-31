@@ -6,8 +6,10 @@ import com.loanmanagementsystem.app.entity.*;
 import com.loanmanagementsystem.app.entity.enums.EmiStatus;
 import com.loanmanagementsystem.app.entity.enums.LoanStatus;
 import com.loanmanagementsystem.app.entity.enums.NotificationType;
+import com.loanmanagementsystem.app.exception.BadRequestException;
 import com.loanmanagementsystem.app.mapper.PaymentMapper;
 import com.loanmanagementsystem.app.repository.*;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -29,12 +31,15 @@ public class PaymentServiceImplementation implements PaymentService {
     private final PaymentMapper paymentMapper;
     private final NotificationService notificationService;
     private final PenaltyService penaltyService;
-    private BorrowerRepository borrowerRepository;
+    private final CreditScoreService creditScoreService;
+    private final BorrowerRepository borrowerRepository;
+
 
     @Override
+    @Transactional
     public PaymentResponse makeEmiPayment(PaymentRequest request) {
         Loan loan = loanRepository.findById(request.getLoanId())
-                .orElseThrow(() -> new RuntimeException("Loan not found with id: " + request.getLoanId()));
+                .orElseThrow(() -> new BadRequestException("Loan not found with id: " + request.getLoanId()));
 
         Borrower borrower = loan.getBorrower();
 
@@ -82,6 +87,9 @@ public class PaymentServiceImplementation implements PaymentService {
         loanRepository.save(loan);
 
         borrower.setSurplusAmount(totalAvailableAmount.subtract(payableAmount));
+        int creditScore=creditScoreService.updateOnPayment(borrower.getCreditScore(),emi);
+        borrower.setCreditScore(creditScore);
+
         borrowerRepository.save(borrower);
         penaltyService.markPenaltiesPaid(loan.getId());
 
@@ -96,22 +104,27 @@ public class PaymentServiceImplementation implements PaymentService {
     }
 
     @Override
+    @Transactional
     public PaymentResponse makeForeclosurePayment(PaymentRequest request) {
         Loan loan = loanRepository.findById(request.getLoanId())
                 .orElseThrow(() -> new RuntimeException("Loan not found with id: " + request.getLoanId()));
-
+        LoanProperties loanProperties = loanPropertiesService.getLoanProperties(loan.getLoanType());
+        if (loanProperties == null) {
+            throw new RuntimeException("Loan Properties Not Found.");
+        }
         Borrower borrower = loan.getBorrower();
+
+        if (!loanProperties.getForeclosureAllowed()) {
+            throw new RuntimeException("Foreclosure is not allowed for loan type: " + loan.getLoanType());
+        }
 
         if (loan.getStatus() == LoanStatus.CLOSED) {
             throw new RuntimeException("Cannot make payment on a closed loan");
         }
 
-        LoanProperties loanProperties = loanPropertiesService.getLoanProperties(loan.getLoanType());
-        if (loanProperties == null) {
-            throw new RuntimeException("Loan Properties Not Found.");
-        }
 
-        if (loanProperties.getMinEmiBeforeForeclosure() <= emiService.getTotalEmiByLoan(loan.getId())) {
+
+        if (loanProperties.getMinEmiBeforeForeclosure() < emiService.getTotalEmiByLoan(loan.getId())) {
             throw new RuntimeException("Minimum " + loanProperties.getMinEmiBeforeForeclosure() + " EMIs required.");
         }
 
@@ -130,10 +143,17 @@ public class PaymentServiceImplementation implements PaymentService {
 
         paymentRepository.save(payment);
 
+        int creditScore=creditScoreService.updateOnForeclosure(
+                borrower.getCreditScore(),
+                emiService.getTotalOverdueEmis(loan.getId()),
+                loan.getTotalPayableAmount()
+        );
+
         loan.setTotalPayableAmount(BigDecimal.ZERO);
         loan.setStatus(LoanStatus.CLOSED);
         loanRepository.save(loan);
 
+        borrower.setCreditScore(creditScore);
         borrower.setSurplusAmount(totalAvailableAmount.subtract(totalPayableAmount));
         borrowerRepository.save(borrower);
         penaltyService.markPenaltiesPaid(loan.getId());
