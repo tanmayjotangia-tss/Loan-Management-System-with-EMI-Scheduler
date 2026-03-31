@@ -1,7 +1,7 @@
 package com.loanmanagementsystem.app.service;
 
 public interface EmiService {
-    Integer getTotalEmiByLoan(Long loanId);
+    Integer getTotalUnpaidEmiByLoan(Long loanId);
     void markEmisPaid(Long loanId);
     Integer getTotalOverdueEmis(Long loanId);
 }

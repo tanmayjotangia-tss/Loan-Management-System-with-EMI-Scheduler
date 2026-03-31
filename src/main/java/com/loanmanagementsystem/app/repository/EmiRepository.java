@@ -64,4 +64,6 @@ public interface EmiRepository extends JpaRepository<Emi, Long> {
     List<Emi> findAllActiveEmisByLoanId(@Param("loanId") Long loanId);
 
     Optional<Emi> findByLoanIdAndInstallmentNumber(Long loanId, Integer installmentNumber);
+
+    boolean existsByLoanIdAndStatusNot(Long loanId, EmiStatus emiStatus);
 }

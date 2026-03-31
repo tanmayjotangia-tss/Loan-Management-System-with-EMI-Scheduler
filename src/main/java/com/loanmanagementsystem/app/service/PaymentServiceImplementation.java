@@ -122,13 +122,14 @@ public class PaymentServiceImplementation implements PaymentService {
             throw new RuntimeException("Cannot make payment on a closed loan");
         }
 
-
-
-        if (loanProperties.getMinEmiBeforeForeclosure() < emiService.getTotalEmiByLoan(loan.getId())) {
+        if (loanProperties.getMinEmiBeforeForeclosure() > emiService.getTotalUnpaidEmiByLoan(loan.getId())) {
             throw new RuntimeException("Minimum " + loanProperties.getMinEmiBeforeForeclosure() + " EMIs required.");
         }
 
-        BigDecimal chargeOnForeclosure = loan.getTotalPayableAmount().multiply(loanProperties.getForeclosurePenaltyPercent());
+        BigDecimal chargeOnForeclosure =
+                loan.getTotalPayableAmount()
+                        .multiply(loanProperties.getForeclosurePenaltyPercent())
+                        .divide(BigDecimal.valueOf(100));
         BigDecimal totalPayableAmount = loan.getTotalPayableAmount().add(penaltyService.getTotalPendingPenalties(loan.getId())).add(chargeOnForeclosure);
         BigDecimal totalAvailableAmount = borrower.getSurplusAmount().add(request.getAmountPaid());
 

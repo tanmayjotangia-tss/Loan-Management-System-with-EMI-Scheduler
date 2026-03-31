@@ -224,7 +224,10 @@ public class LoanApplicationServiceImplementation implements LoanApplicationServ
         loanApplication.setOfficerComment(request.getOfficerComment());
         loanApplication.setReviewedAt(LocalDateTime.now());
 
-        if (request.getStatus() == LoanApplicationStatus.APPROVED && request.getFinalStrategy() != null) {
+        if (request.getStatus() == LoanApplicationStatus.APPROVED) {
+            if (request.getFinalStrategy() == null) {
+                throw new RuntimeException("Final strategy is required for approval");
+            }
             loanApplication.setFinalStrategy(request.getFinalStrategy());
         }
 
