@@ -6,5 +6,5 @@ import java.util.List;
 
 public interface EmiService {
     Integer getTotalEmiByLoan(Long loanId);
-    List<EmiResponse> getUnpaidEmis(Long loanId);
+    void markEmisPaid(Long loanId);
 }

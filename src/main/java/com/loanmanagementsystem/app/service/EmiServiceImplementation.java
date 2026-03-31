@@ -8,6 +8,7 @@ import com.loanmanagementsystem.app.repository.EmiRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -27,15 +28,19 @@ public class EmiServiceImplementation implements EmiService{
         return emis.size();
     }
 
-    public List<EmiResponse> getUnpaidEmis(Long loanId){
-        double totalPendingEmiAmount=0L;
+    @Override
+    public void markEmisPaid(Long loanId) {
+        List<Emi> unpaidEmis=emiRepository.findUnpaidEmisByLoanId(loanId);
 
-        List<Emi> pendingEmis=emiRepository.findAllByLoanIdAndStatus(loanId, EmiStatus.PENDING);
-
-        if(pendingEmis!=null){
-            for(Emi emi:pendingEmis){
-                totalPendingEmiAmount+=emi.getEmiAmount();
-            }
+        if(unpaidEmis==null){
+            return;
+        }
+        for(Emi emi:unpaidEmis){
+            emi.setStatus(EmiStatus.PAID);
+            emi.setPaymentDate(LocalDate.now());
+            emi.setPaidAmount(emi.getEmiAmount());
+            emiRepository.save(emi);
         }
     }
+
 }
