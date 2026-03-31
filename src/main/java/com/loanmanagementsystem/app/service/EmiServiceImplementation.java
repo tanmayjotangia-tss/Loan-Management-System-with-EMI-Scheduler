@@ -1,7 +1,5 @@
 package com.loanmanagementsystem.app.service;
 
-import com.loanmanagementsystem.app.dto.response.EmiResponse;
-import com.loanmanagementsystem.app.dto.response.LoanResponse;
 import com.loanmanagementsystem.app.entity.Emi;
 import com.loanmanagementsystem.app.entity.enums.EmiStatus;
 import com.loanmanagementsystem.app.repository.EmiRepository;

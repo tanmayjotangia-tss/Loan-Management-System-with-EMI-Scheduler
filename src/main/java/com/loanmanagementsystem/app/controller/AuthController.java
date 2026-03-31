@@ -8,10 +8,13 @@ import com.loanmanagementsystem.app.dto.response.ApiResponse;
 import com.loanmanagementsystem.app.dto.response.AuthResponse;
 import com.loanmanagementsystem.app.dto.response.UserResponse;
 import com.loanmanagementsystem.app.service.AuthService;
+import com.loanmanagementsystem.app.security.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -42,20 +45,25 @@ public class AuthController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<ApiResponse<UserResponse>> getCurrentUser() {
-        UserResponse response = authService.getCurrentUser();
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<UserResponse>> getCurrentUser(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        UserResponse response = authService.getCurrentUser(userDetails.getUserId());
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @PatchMapping("/me/credentials")
-    public ResponseEntity<ApiResponse<String>> updateCredentials(@Valid @RequestBody UpdateCredentialsRequest request) {
-        authService.updateCredentials(request);
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<String>> updateCredentials(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @Valid @RequestBody UpdateCredentialsRequest request) {
+        authService.updateCredentials(userDetails.getUserId(), request);
         return ResponseEntity.ok(ApiResponse.success("Credentials updated successfully."));
     }
 
     @PostMapping("/me/deactivate")
-    public ResponseEntity<ApiResponse<String>> deactivateAccount() {
-        authService.deactivateAccount();
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<String>> deactivateAccount(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        authService.deactivateAccount(userDetails.getUserId());
         return ResponseEntity.ok(ApiResponse.success("Account deactivated successfully."));
     }
 

@@ -18,7 +18,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -169,13 +169,8 @@ public class AuthServiceImplementation implements AuthService {
     }
 
     @Override
-    public UserResponse getCurrentUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new RuntimeException("No authenticated user found");
-        }
-        String email = authentication.getName();
-        User user = userRepository.findByEmail(email)
+    public UserResponse getCurrentUser(Long userId) {
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         
         return UserResponse.builder()
@@ -193,13 +188,8 @@ public class AuthServiceImplementation implements AuthService {
 
     @Override
     @Transactional
-    public void deactivateAccount() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new RuntimeException("No authenticated user found");
-        }
-        String email = authentication.getName();
-        User user = userRepository.findByEmail(email)
+    public void deactivateAccount(Long userId) {
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         
         user.setIsActive(false);
@@ -208,14 +198,10 @@ public class AuthServiceImplementation implements AuthService {
 
     @Override
     @Transactional
-    public void updateCredentials(UpdateCredentialsRequest request) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new RuntimeException("No authenticated user found");
-        }
-        String currentEmail = authentication.getName();
-        User user = userRepository.findByEmail(currentEmail)
+    public void updateCredentials(Long userId, UpdateCredentialsRequest request) {
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+        String currentEmail = user.getEmail();
 
         if (request.getEmail() != null && !request.getEmail().trim().isEmpty()) {
             if (!currentEmail.equals(request.getEmail()) && userRepository.existsByEmail(request.getEmail())) {

@@ -18,7 +18,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
@@ -142,13 +142,6 @@ class AuthServiceImplementationTest {
 
     @Test
     void getCurrentUser_success() {
-        // Mock Authentication
-        Authentication authentication = mock(Authentication.class);
-        when(authentication.getName()).thenReturn("test@test.com");
-        when(authentication.isAuthenticated()).thenReturn(true);
-
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-
         User user = new User();
         user.setId(1L);
         user.setName("John");
@@ -158,10 +151,10 @@ class AuthServiceImplementationTest {
         user.setIsActive(true);
         user.setIsVerified(true);
 
-        when(userRepository.findByEmail("test@test.com"))
+        when(userRepository.findById(1L))
                 .thenReturn(Optional.of(user));
-
-        var response = authService.getCurrentUser();
+ 
+        var response = authService.getCurrentUser(1L);
 
         assertNotNull(response);
         assertEquals("John", response.getName());
@@ -170,28 +163,21 @@ class AuthServiceImplementationTest {
     }
 
     @Test
-    void getCurrentUser_noAuth_shouldThrow() {
-        SecurityContextHolder.clearContext();
-
-        assertThrows(RuntimeException.class, () -> authService.getCurrentUser());
+    void getCurrentUser_userNotFound_shouldThrow() {
+        when(userRepository.findById(1L)).thenReturn(Optional.empty());
+ 
+        assertThrows(RuntimeException.class, () -> authService.getCurrentUser(1L));
     }
 
     @Test
     void updateCredentials_success() {
-        // Mock logged-in user
-        Authentication authentication = mock(Authentication.class);
-        when(authentication.getName()).thenReturn("test@test.com");
-        when(authentication.isAuthenticated()).thenReturn(true);
-
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-
         User user = new User();
         user.setId(1L);
         user.setEmail("test@test.com");
         user.setPhoneNumber("999");
         user.setPassword("encodedOld");
 
-        when(userRepository.findByEmail("test@test.com"))
+        when(userRepository.findById(1L))
                 .thenReturn(Optional.of(user));
 
         when(passwordEncoder.matches("oldPass", "encodedOld"))
@@ -208,8 +194,8 @@ class AuthServiceImplementationTest {
 
         when(userRepository.existsByEmail("new@test.com")).thenReturn(false);
         when(userRepository.existsByPhoneNumber("888")).thenReturn(false);
-
-        authService.updateCredentials(request);
+ 
+        authService.updateCredentials(1L, request);
 
         assertEquals("new@test.com", user.getEmail());
         assertEquals("888", user.getPhoneNumber());

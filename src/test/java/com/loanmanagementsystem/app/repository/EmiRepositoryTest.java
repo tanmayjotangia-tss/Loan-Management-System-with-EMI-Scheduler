@@ -82,22 +82,21 @@ class EmiRepositoryTest {
                 .build();
         em.persist(loan);
     }
-
-    private Emi emi(LocalDate date, EmiStatus status, boolean reminderSent) {
-        return em.persist(
-                Emi.builder()
-                        .loan(loan)
-                        .installmentNumber(1)
-                        .dueDate(date)
-                        .emiAmount(new BigDecimal("8884"))
-                        .principalComponent(new BigDecimal("7000"))
-                        .interestComponent(new BigDecimal("1000"))
-                        .remainingBalance(new BigDecimal("90000"))
-                        .status(status)
-                        .reminderSent(reminderSent)
-                        .build()
-        );
-    }
+    
+private Emi emi(LocalDate date, EmiStatus status, boolean reminderSent) {
+    return em.persist(
+            Emi.builder()
+                    .loan(loan)
+                    .installmentNumber(1)
+                    .dueDate(date)
+                    .emiAmount(new BigDecimal("8884"))
+                    .principalComponent(new BigDecimal("7000"))
+                    .interestComponent(new BigDecimal("1000"))
+                    .status(status)
+                    .reminderSent(reminderSent)
+                    .build()
+    );
+}
 
 
     @Test

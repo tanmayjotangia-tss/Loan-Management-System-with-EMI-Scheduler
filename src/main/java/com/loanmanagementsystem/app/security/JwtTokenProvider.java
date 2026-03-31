@@ -28,7 +28,7 @@ public class JwtTokenProvider {
         Date expiry = new Date(now.getTime() + jwtExpirationMs);
 
         return Jwts.builder()
-                .subject(user.getEmail())
+                .subject(String.valueOf(user.getUserId()))
                 .claim("userId", user.getUserId())
                 .claim("role",   user.getRole().name())
                 .issuedAt(now)
@@ -53,7 +53,7 @@ public class JwtTokenProvider {
         return false;
     }
 
-    public String getEmail(String token) {
+    public String getIdentifier(String token) {
         return parseClaims(token).getSubject();
     }
 

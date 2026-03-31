@@ -44,26 +44,15 @@ public class SecurityConfig {
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
         http.authorizeHttpRequests(auth -> auth
-
-                // Public
+                // Public endpoints
                 .requestMatchers(
                         "/api/v1/auth/**",
                         "/swagger-ui/**",
                         "/v3/api-docs/**"
                 ).permitAll()
-
-                // Borrower only
-                .requestMatchers("/api/v1/loans/apply").hasRole("BORROWER")
-                .requestMatchers("/api/v1/documents/**").hasRole("BORROWER")
-
-                // Borrower + Officer
-                .requestMatchers("/api/v1/loans/*/schedule")
-                        .hasAnyRole("BORROWER", "LOAN_OFFICER")
-
-                // Officer only
-                .requestMatchers("/api/v1/officer/**").hasRole("LOAN_OFFICER")
-
-                // Everything else: just be authenticated
+ 
+                // All other endpoints require authentication
+                // Specific role requirements are handled by @PreAuthorize on controllers
                 .anyRequest().authenticated()
         );
 

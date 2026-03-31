@@ -19,9 +19,9 @@ public interface AuthService {
 
     AuthResponse login(LoginRequest request);
 
-    UserResponse getCurrentUser();
+    UserResponse getCurrentUser(Long userId);
 
-    void deactivateAccount();
+    void deactivateAccount(Long userId);
 
-    void updateCredentials(UpdateCredentialsRequest request);
+    void updateCredentials(Long userId, UpdateCredentialsRequest request);
 }
