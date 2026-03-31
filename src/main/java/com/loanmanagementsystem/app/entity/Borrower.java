@@ -32,6 +32,9 @@ public class Borrower extends User {
     @Column(name = "ifsc_code")
     private String ifscCode;
 
+    @Column(name= "surplus_amount", precision = 15, scale = 2)
+    private BigDecimal surplusAmount;
+
     @OneToMany(mappedBy = "borrower", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<LoanApplication> loanApplications = new ArrayList<>();
 

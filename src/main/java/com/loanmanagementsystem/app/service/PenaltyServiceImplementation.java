@@ -71,6 +71,18 @@ public class PenaltyServiceImplementation implements PenaltyService {
                 .toList();
     }
 
+    public void markPenaltiesPaid(Long loanId){
+        List<Penalty> penalties=penaltyRepository.findAllByLoanId(loanId);
+
+        if(penalties==null){
+            return;
+        }
+        for(Penalty penalty:penalties){
+            penalty.setIsPaid(true);
+            penalty.setPaidDate(LocalDate.now());
+        }
+    }
+
     @Override
     public List<PenaltyResponse> getUnpaidPenaltiesByLoanId(Long loanId) {
         return penaltyRepository.findAllByLoanIdAndIsPaidFalse(loanId)
@@ -85,5 +97,20 @@ public class PenaltyServiceImplementation implements PenaltyService {
                 .stream()
                 .map(penaltyMapper :: toResponse)
                 .toList();
+    }
+
+    public BigDecimal getTotalPendingPenalties(Long loanId) {
+
+        List<Penalty> pendingPenalties=penaltyRepository.findAllByLoanIdAndIsPaidFalse(loanId);
+
+        BigDecimal totalPenalties=BigDecimal.ZERO;
+
+        if(pendingPenalties==null){
+            return totalPenalties;
+        }
+        for(Penalty penalty:pendingPenalties){
+            totalPenalties=totalPenalties.add(penalty.getAmount());
+        }
+        return totalPenalties;
     }
 }

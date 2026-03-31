@@ -16,6 +16,16 @@ public interface EmiRepository extends JpaRepository<Emi, Long> {
 
     List<Emi> findAllByLoanIdOrderByInstallmentNumberAsc(Long loanId);
 
+    @Query("""
+    SELECT e FROM Emi e
+    WHERE e.loan.id = :loanId
+    AND e.status IN (
+        com.loanmanagementsystem.app.entity.enums.EmiStatus.PENDING,
+        com.loanmanagementsystem.app.entity.enums.EmiStatus.OVERDUE
+    )
+""")
+    List<Emi> findUnpaidEmisByLoanId(@Param("loanId") Long loanId);
+
     List<Emi> findAllByLoanId(Long loanId);
 
     List<Emi> findAllByStatus(EmiStatus status);
