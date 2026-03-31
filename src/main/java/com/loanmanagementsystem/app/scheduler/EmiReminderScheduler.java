@@ -23,13 +23,14 @@ import java.util.List;
 @Slf4j
 public class EmiReminderScheduler {
 
+    private static final int MISSED_EMI_THRESHOLD = 30;
     private final EmiRepository emiRepository;
     private final NotificationService notificationService;
     private final PenaltyService penaltyService;
 
     @Scheduled(cron = "0 0 0 * * ?")
     @Transactional
-    public void processEmiRemindersAndOverdueAlerts() {
+    public void processEmiNotifications() {
 
         log.info("EMI Scheduler started");
 
@@ -37,11 +38,18 @@ public class EmiReminderScheduler {
         LocalDate in3Days = today.plusDays(3);
 
         // 3 days prior
-        List<Emi> upcomingEmis = emiRepository.findUpcomingEmis(in3Days, EmiStatus.PENDING);
+        List<Emi> upcomingEmis = emiRepository.findUpcomingEmis(in3Days, EmiStatus.UPCOMING);
 
         for (Emi emi : upcomingEmis) {
             sendReminder(emi);
             emi.setReminderSent(true);
+        }
+
+        List<Emi> todayDueEmis=emiRepository.findAllByDueDateAndStatus(today,EmiStatus.UPCOMING);
+
+        for(Emi emi:todayDueEmis){
+            emi.setStatus(EmiStatus.PENDING);
+            dueDayReminder(emi);
         }
 
         List<Emi> overdueEmis = emiRepository.findOverdueEmis(today);
@@ -66,7 +74,7 @@ public class EmiReminderScheduler {
                 emi.setLastOverdueAlertDay((int) daysOverdue);
             }
 
-            if(daysOverdue == 30){
+            if(daysOverdue == MISSED_EMI_THRESHOLD){
                 penaltyService.applyPenalty(emi.getId(),PenaltyReason.MISSED_EMI);
                 sendMissedEmiAlert(emi);
             }
@@ -84,6 +92,19 @@ public class EmiReminderScheduler {
                         emi.getEmiAmount(),
                         emi.getLoan().getId(),
                         emi.getDueDate())
+        );
+    }
+
+    private void dueDayReminder(Emi emi) {
+        notificationService.sendNotification(
+                emi.getLoan().getBorrower().getId(),
+                NotificationType.REMINDER,
+                "EMI Due Today",
+                String.format(
+                        "Your EMI of ₹%s for Loan ID %d is due today. Please ensure timely payment to avoid penalties.",
+                        emi.getEmiAmount(),
+                        emi.getLoan().getId()
+                )
         );
     }
 

@@ -42,13 +42,13 @@ public class Emi {
     @Column(name = "interest_component", nullable = false, precision = 15, scale = 2)
     private BigDecimal interestComponent;
 
-    @Column(name = "remaining_balance", nullable = false, precision = 15, scale = 2)
-    private BigDecimal remainingBalance;
+//    @Column(name = "remaining_balance", nullable = false, precision = 15, scale = 2)
+//    private BigDecimal remainingBalance;
 
     @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private EmiStatus status = EmiStatus.PENDING;
+    private EmiStatus status = EmiStatus.UPCOMING;
 
     @Column(name = "payment_date")
     private LocalDate paymentDate;
