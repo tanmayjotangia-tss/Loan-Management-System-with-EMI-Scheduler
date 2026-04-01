@@ -62,7 +62,7 @@ public class LoanOfficerController {
     @PatchMapping("/{id}/availability")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<String>> updateLoanOfficerAvailability(
-            @PathVariable Long id, 
+            @PathVariable Long id,
             @RequestParam Boolean isAvailable) {
         loanOfficerService.updateLoanOfficerAvailability(id, isAvailable);
         return ResponseEntity.ok(ApiResponse.success("Loan officer availability updated successfully."));
@@ -71,7 +71,7 @@ public class LoanOfficerController {
     @PatchMapping("/{id}/type")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<String>> updateLoanOfficerType(
-            @PathVariable Long id, 
+            @PathVariable Long id,
             @RequestParam OfficerType type) {
         loanOfficerService.updateLoanOfficerType(id, type);
         return ResponseEntity.ok(ApiResponse.success("Loan officer type updated successfully."));
