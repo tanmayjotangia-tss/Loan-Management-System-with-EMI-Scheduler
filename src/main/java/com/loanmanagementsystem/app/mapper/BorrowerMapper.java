@@ -20,7 +20,6 @@ public interface BorrowerMapper {
     @Mapping(target = "notifications", ignore = true)
     @Mapping(target = "loanApplications", ignore = true)
     @Mapping(target = "loans", ignore = true)
-    @Mapping(target = "creditScore", source = "creditScore")
     Borrower toEntity(RegisterUserRequest request);
 
     BorrowerResponse toResponse(Borrower borrower);

@@ -58,6 +58,10 @@ public class PaymentServiceImplementation implements PaymentService {
             throw new RuntimeException("EMI is already paid");
         }
 
+        if (emi.getStatus() == EmiStatus.UPCOMING) {
+            throw new RuntimeException("This EMI is not payable yet");
+        }
+
         if (!emi.getLoan().getId().equals(loan.getId())) {
             throw new RuntimeException("EMI does not belong to the specified loan");
         }

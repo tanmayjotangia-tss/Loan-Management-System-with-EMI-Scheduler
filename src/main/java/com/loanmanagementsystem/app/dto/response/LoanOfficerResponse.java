@@ -22,7 +22,6 @@ public class LoanOfficerResponse {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    private String employeeNumber;
     private OfficerType officerType;
     private String branchName;
     private Boolean isAvailable;

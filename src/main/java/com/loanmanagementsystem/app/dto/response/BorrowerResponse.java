@@ -16,7 +16,7 @@ public class BorrowerResponse {
     private String name;
     private String email;
     private String phoneNumber;
-    private Role role;
+    private Role role; //----
     private Boolean isActive;
     private Boolean isVerified;
     private LocalDateTime createdAt;

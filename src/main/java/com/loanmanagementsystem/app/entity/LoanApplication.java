@@ -36,8 +36,6 @@ public class LoanApplication {
     @Column(name = "requested_tenure_months", nullable = false)
     private Integer requestedTenureMonths;
 
-    private String purpose;
-
     @Column(name = "monthly_income", nullable = false, precision = 15, scale = 2)
     private BigDecimal monthlyIncome;
 

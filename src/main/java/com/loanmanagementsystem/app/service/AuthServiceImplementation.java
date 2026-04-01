@@ -117,7 +117,6 @@ public class AuthServiceImplementation implements AuthService {
         officer.setRole(Role.LOAN_OFFICER);
         officer.setIsActive(true);
         officer.setIsVerified(false);
-        officer.setEmployeeNumber(request.getEmployeeNumber());
         officer.setOfficerType(request.getOfficerType());
         officer.setBranchName(request.getBranchName());
         officer.setIsAvailable(true);
