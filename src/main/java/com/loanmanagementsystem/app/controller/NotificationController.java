@@ -30,10 +30,10 @@ public class NotificationController {
             @PathVariable Long userId,
             @RequestParam NotificationType type,
             @RequestBody Map<String, String> request) {
-        
+
         String subject = request.get("subject");
         String message = request.get("message");
-        
+
         notificationService.sendNotification(userId, type, subject, message);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(HttpStatus.CREATED.value(), "Notification sent successfully", null));
@@ -56,7 +56,7 @@ public class NotificationController {
     @GetMapping("/{id}/me")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponse<NotificationResponse>> getMyNotificationById(
-            @PathVariable Long id, 
+            @PathVariable Long id,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         NotificationResponse response = notificationService.getNotificationById(id, userDetails.getUserId());
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -65,7 +65,7 @@ public class NotificationController {
     @GetMapping("/{id}/user/{userId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'LOAN_OFFICER')")
     public ResponseEntity<ApiResponse<NotificationResponse>> getNotificationById(
-            @PathVariable Long id, 
+            @PathVariable Long id,
             @PathVariable Long userId) {
         NotificationResponse response = notificationService.getNotificationById(id, userId);
         return ResponseEntity.ok(ApiResponse.success(response));

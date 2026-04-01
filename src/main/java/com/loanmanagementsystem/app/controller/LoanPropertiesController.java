@@ -6,6 +6,7 @@ import com.loanmanagementsystem.app.entity.enums.LoanType;
 import com.loanmanagementsystem.app.service.LoanPropertiesService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,13 +18,19 @@ public class LoanPropertiesController {
 
     private final LoanPropertiesService loanPropertiesService;
 
+
+//    Any authenticated user can read loan properties (rates, tenure limits, etc.).
+
     @GetMapping("/{loanType}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponse<LoanProperties>> getLoanProperties(@PathVariable LoanType loanType) {
         LoanProperties response = loanPropertiesService.getLoanProperties(loanType);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
+//    Only ADMIN can modify loan properties.
     @PutMapping("/{loanType}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<LoanProperties>> updateLoanProperties(
             @PathVariable LoanType loanType,
             @RequestBody LoanProperties updatedProperties) {
