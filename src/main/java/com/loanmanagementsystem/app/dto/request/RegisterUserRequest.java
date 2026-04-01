@@ -32,8 +32,6 @@ public class RegisterUserRequest {
     @DecimalMin(value = "0.0", message = "Current EMI amount cannot be negative")
     private BigDecimal currentEmiAmount;
 
-    private Integer creditScore;
-
     @NotBlank(message = "Bank account number is required")
     private String bankAccountNumber;
 

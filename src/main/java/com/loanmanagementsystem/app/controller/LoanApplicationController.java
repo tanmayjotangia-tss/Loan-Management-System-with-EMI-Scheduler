@@ -44,8 +44,6 @@ public class LoanApplicationController {
         return ResponseEntity.ok(ApiResponse.success(responses));
     }
 
-//     BORROWER can only view their own application.
-//     LOAN_OFFICER / ADMIN can view any application.
     @GetMapping("/{applicationId}")
     @PreAuthorize("hasAnyRole('BORROWER', 'LOAN_OFFICER', 'ADMIN')")
     public ResponseEntity<ApiResponse<LoanApplicationResponse>> getApplicationById(

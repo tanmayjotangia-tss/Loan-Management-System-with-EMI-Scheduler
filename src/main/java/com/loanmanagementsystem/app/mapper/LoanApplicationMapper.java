@@ -24,7 +24,6 @@ public interface LoanApplicationMapper {
 
     @Mapping(target = "borrowerId", source = "borrower.id")
     @Mapping(target = "borrowerName", source = "borrower.name")
-    @Mapping(target = "reviewedByOfficerId", source = "reviewedByOfficer.id")
     @Mapping(target = "reviewedByOfficerName", source = "reviewedByOfficer.name")
     LoanApplicationResponse toResponse(LoanApplication loanApplication);
 }

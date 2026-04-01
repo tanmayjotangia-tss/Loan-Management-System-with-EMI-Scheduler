@@ -30,9 +30,6 @@ public class RegisterOfficerRequest {
     @NotBlank(message = "Phone number is required")
     private String phoneNumber;
 
-    @NotBlank(message = "Employee number is required")
-    private String employeeNumber;
-
     @NotNull(message = "Officer type is required")
     private OfficerType officerType;
 

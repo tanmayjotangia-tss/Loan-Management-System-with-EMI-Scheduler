@@ -17,10 +17,9 @@ public class LoanResponse {
 
     private Long id;
     private LoanType loanType;
-    private Long loanApplicationId;
+    private Long loanApplicationId; //----
     private Long borrowerId;
     private String borrowerName;
-    private Long approvedByOfficerId;
     private String approvedByOfficerName;
     private BigDecimal principalAmount;
     private BigDecimal interestRate;

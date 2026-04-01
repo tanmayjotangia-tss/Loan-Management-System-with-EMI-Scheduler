@@ -29,8 +29,6 @@ public class PaymentController {
     private final LoanService loanService;
 
 
-//    Only the BORROWER who owns the loan may pay an EMI.
-
     @PostMapping("/emi")
     @PreAuthorize("hasRole('BORROWER')")
     public ResponseEntity<ApiResponse<PaymentResponse>> makeEmiPayment(
@@ -43,7 +41,6 @@ public class PaymentController {
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.created(response));
     }
 
-//    Only the BORROWER who owns the loan may make a foreclosure payment.
     @PostMapping("/foreclosure")
     @PreAuthorize("hasRole('BORROWER')")
     public ResponseEntity<ApiResponse<PaymentResponse>> makeForeclosurePayment(
@@ -56,8 +53,6 @@ public class PaymentController {
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.created(response));
     }
 
-//      BORROWER can only view payments for their own loan.
-//      LOAN_OFFICER / ADMIN can view payments for any loan.
 
     @GetMapping("/loan/{loanId}")
     @PreAuthorize("hasAnyRole('LOAN_OFFICER', 'ADMIN', 'BORROWER')")
@@ -74,8 +69,6 @@ public class PaymentController {
     }
 
 
-//      BORROWER can only view payments for EMIs that belong to their own loan.
-//      LOAN_OFFICER / ADMIN can view payments for any EMI.
     @GetMapping("/emi/{emiId}")
     @PreAuthorize("hasAnyRole('LOAN_OFFICER', 'ADMIN', 'BORROWER')")
     public ResponseEntity<ApiResponse<List<PaymentResponse>>> getPaymentsByEmiId(
@@ -84,7 +77,6 @@ public class PaymentController {
 
         List<PaymentResponse> responses = paymentService.getPaymentsByEmiId(emiId);
 
-        // For BORROWER: infer the loan from the first payment result and verify ownership.
         if (userDetails.getRole().name().equals("BORROWER") && !responses.isEmpty()) {
             verifyLoanOwnership(responses.get(0).getLoanId(), userDetails.getUserId());
         }

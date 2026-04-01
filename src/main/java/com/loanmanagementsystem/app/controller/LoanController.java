@@ -26,7 +26,6 @@ public class LoanController {
 
     private final LoanService loanService;
 
-//    Only LOAN_OFFICER / ADMIN can create a loan from an approved application.
     @PostMapping("/application/{applicationId}")
     @PreAuthorize("hasAnyRole('LOAN_OFFICER', 'ADMIN')")
     public ResponseEntity<ApiResponse<LoanResponse>> createLoanFromApplication(
@@ -36,7 +35,6 @@ public class LoanController {
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.created(response));
     }
 
-//     Only LOAN_OFFICER / ADMIN can list all loans.
     @GetMapping
     @PreAuthorize("hasAnyRole('LOAN_OFFICER', 'ADMIN')")
     public ResponseEntity<ApiResponse<List<LoanResponse>>> getAllLoans() {
@@ -45,8 +43,6 @@ public class LoanController {
     }
 
 
-//     BORROWER can fetch only their own loan.
-//     LOAN_OFFICER / ADMIN can fetch any loan.
     @GetMapping("/{loanId}")
     @PreAuthorize("hasAnyRole('LOAN_OFFICER', 'ADMIN', 'BORROWER')")
     public ResponseEntity<ApiResponse<LoanResponse>> getLoanById(
@@ -62,8 +58,6 @@ public class LoanController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
-//     BORROWER can only retrieve their own loans (borrowerId must match authenticated user).
-//     LOAN_OFFICER / ADMIN can retrieve any borrower's loans.
     @GetMapping("/borrower/{borrowerId}")
     @PreAuthorize("hasAnyRole('LOAN_OFFICER', 'ADMIN') or " +
             "(hasRole('BORROWER') and #borrowerId == authentication.principal.userId)")
@@ -72,7 +66,6 @@ public class LoanController {
         return ResponseEntity.ok(ApiResponse.success(responses));
     }
 
-//     Only LOAN_OFFICER / ADMIN can filter loans by type.
     @GetMapping("/type/{loanType}")
     @PreAuthorize("hasAnyRole('LOAN_OFFICER', 'ADMIN')")
     public ResponseEntity<ApiResponse<List<LoanResponse>>> getLoansByType(@PathVariable LoanType loanType) {
@@ -80,7 +73,6 @@ public class LoanController {
         return ResponseEntity.ok(ApiResponse.success(responses));
     }
 
-//    Only LOAN_OFFICER / ADMIN can filter loans by status.
     @GetMapping("/status/{status}")
     @PreAuthorize("hasAnyRole('LOAN_OFFICER', 'ADMIN')")
     public ResponseEntity<ApiResponse<List<LoanResponse>>> getLoansByStatus(@PathVariable LoanStatus status) {
@@ -88,7 +80,6 @@ public class LoanController {
         return ResponseEntity.ok(ApiResponse.success(responses));
     }
 
-//    Only LOAN_OFFICER / ADMIN can close a loan.
     @PostMapping("/{loanId}/close")
     @PreAuthorize("hasAnyRole('LOAN_OFFICER', 'ADMIN')")
     public ResponseEntity<ApiResponse<LoanResponse>> closeLoan(@PathVariable Long loanId) {

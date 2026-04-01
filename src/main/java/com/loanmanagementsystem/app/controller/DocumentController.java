@@ -45,8 +45,6 @@ public class DocumentController {
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.created(response));
     }
 
-//    BORROWER can only retrieve their own documents.
-//    ADMIN / LOAN_OFFICER can retrieve any user's documents.
     @GetMapping("/user/{userId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'LOAN_OFFICER') or " +
             "(hasRole('BORROWER') and #userId == authentication.principal.userId)")
@@ -55,8 +53,6 @@ public class DocumentController {
         return ResponseEntity.ok(ApiResponse.success(responses));
     }
 
-//     BORROWER can only retrieve their own document.
-//     ADMIN / LOAN_OFFICER can retrieve any document.
     @GetMapping("/{documentId}/user/{userId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'LOAN_OFFICER') or " +
             "(hasRole('BORROWER') and #userId == authentication.principal.userId)")
@@ -67,7 +63,6 @@ public class DocumentController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
-//    Only LOAN_OFFICER or ADMIN can verify documents.
     @PostMapping("/{documentId}/verify")
     @PreAuthorize("hasAnyRole('LOAN_OFFICER', 'ADMIN')")
     public ResponseEntity<ApiResponse<DocumentResponse>> verifyDocument(

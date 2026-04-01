@@ -18,8 +18,7 @@ public class LoanPropertiesController {
 
     private final LoanPropertiesService loanPropertiesService;
 
-
-//    Any authenticated user can read loan properties (rates, tenure limits, etc.).
+//    Any authenticated user can read loan properties
 
     @GetMapping("/{loanType}")
     @PreAuthorize("isAuthenticated()")

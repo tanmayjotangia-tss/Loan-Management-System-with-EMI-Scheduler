@@ -24,8 +24,6 @@ public class LoanApplicationRequest {
     @Max(value = 360, message = "Tenure cannot exceed 360 months")
     private Integer requestedTenureMonths;
 
-    private String purpose;
-
     @NotNull(message = "Monthly income is required")
     @DecimalMin(value = "0.0", inclusive = false, message = "Monthly income must be positive")
     private BigDecimal monthlyIncome;

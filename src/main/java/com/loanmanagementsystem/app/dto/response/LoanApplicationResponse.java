@@ -18,15 +18,11 @@ public class LoanApplicationResponse {
     private String borrowerName;
     private BigDecimal requestedAmount;
     private Integer requestedTenureMonths;
-    private String purpose;
     private BigDecimal monthlyIncome;
-    private BigDecimal currentEmi;
-    private BigDecimal calculatedDti;
+    private BigDecimal currentEmi; //-----
     private RiskCategory riskCategory;
-    private StrategyType suggestedStrategy;
     private StrategyType finalStrategy;
     private LoanApplicationStatus status;
-    private Long reviewedByOfficerId;
     private String reviewedByOfficerName;
     private String officerComment;
     private LocalDateTime appliedAt;

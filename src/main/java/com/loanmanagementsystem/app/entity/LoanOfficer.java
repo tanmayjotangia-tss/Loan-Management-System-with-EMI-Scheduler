@@ -17,9 +17,6 @@ import java.util.List;
 @ToString(callSuper = true, exclude = {"reviewedApplications", "approvedLoans", "verifiedDocuments"})
 public class LoanOfficer extends User {
 
-    @Column(name = "employee_number", unique = true)
-    private String employeeNumber;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "officer_type")
     private OfficerType officerType;
