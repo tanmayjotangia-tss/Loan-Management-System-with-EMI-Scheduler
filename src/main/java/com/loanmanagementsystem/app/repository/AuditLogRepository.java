@@ -18,6 +18,4 @@ public interface AuditLogRepository extends JpaRepository<AuditLog, Long> {
     List<AuditLog> findAllByAction(AuditAction action);
 
     List<AuditLog> findAllByEntityId(Long entityId);
-
-    List<AuditLog> findAllByEntityTypeAndEntityId(EntityType entityType, Long entityId);
 }

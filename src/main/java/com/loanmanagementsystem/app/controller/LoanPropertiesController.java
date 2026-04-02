@@ -18,8 +18,6 @@ public class LoanPropertiesController {
 
     private final LoanPropertiesService loanPropertiesService;
 
-//    Any authenticated user can read loan properties
-
     @GetMapping("/{loanType}")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponse<LoanProperties>> getLoanProperties(@PathVariable LoanType loanType) {
@@ -27,7 +25,6 @@ public class LoanPropertiesController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
-//    Only ADMIN can modify loan properties.
     @PutMapping("/{loanType}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<LoanProperties>> updateLoanProperties(

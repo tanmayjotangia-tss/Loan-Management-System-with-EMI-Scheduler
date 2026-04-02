@@ -66,16 +66,4 @@ public class AuthController {
         authService.deactivateAccount(userDetails.getUserId());
         return ResponseEntity.ok(ApiResponse.success("Account deactivated successfully."));
     }
-
-    @GetMapping("/exists/email")
-    public ResponseEntity<ApiResponse<Boolean>> isEmailExists(@RequestParam String email) {
-        boolean exists = authService.isEmailExists(email);
-        return ResponseEntity.ok(ApiResponse.success(exists));
-    }
-
-    @GetMapping("/exists/phone")
-    public ResponseEntity<ApiResponse<Boolean>> isPhoneNumberExists(@RequestParam String phoneNumber) {
-        boolean exists = authService.isPhoneNumberExists(phoneNumber);
-        return ResponseEntity.ok(ApiResponse.success(exists));
-    }
 }

@@ -9,10 +9,4 @@ import java.util.Optional;
 
 @Repository
 public interface BorrowerRepository extends JpaRepository<Borrower, Long> {
-
-    Optional<Borrower> findByEmail(String email);
-
-    List<Borrower> findAllByIsActiveTrue();
-
-    boolean existsByEmail(String email);
 }

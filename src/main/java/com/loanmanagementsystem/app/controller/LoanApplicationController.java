@@ -38,9 +38,8 @@ public class LoanApplicationController {
 
     @GetMapping("/my-applications")
     @PreAuthorize("hasRole('BORROWER')")
-    public ResponseEntity<ApiResponse<List<LoanApplicationResponse>>> getMyApplications(
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
-        List<LoanApplicationResponse> responses = loanApplicationService.getApplicationsByBorrowerId(userDetails.getUserId());
+    public ResponseEntity<ApiResponse<List<LoanApplicationResponse>>> getMyApplications() {
+        List<LoanApplicationResponse> responses = loanApplicationService.getCurrentUserApplications();
         return ResponseEntity.ok(ApiResponse.success(responses));
     }
 
@@ -55,7 +54,6 @@ public class LoanApplicationController {
                 && !response.getBorrowerId().equals(userDetails.getUserId())) {
             throw new AccessDeniedException("You are not authorised to view this application.");
         }
-
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -90,13 +88,6 @@ public class LoanApplicationController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
-    @GetMapping("/{applicationId}/suggest-strategy")
-    @PreAuthorize("hasAnyRole('LOAN_OFFICER', 'ADMIN')")
-    public ResponseEntity<ApiResponse<LoanApplicationResponse>> suggestStrategy(
-            @PathVariable Long applicationId) {
-        LoanApplicationResponse response = loanApplicationService.suggestStrategy(applicationId);
-        return ResponseEntity.ok(ApiResponse.success(response));
-    }
 
     @PostMapping("/{applicationId}/review")
     @PreAuthorize("hasRole('LOAN_OFFICER')")

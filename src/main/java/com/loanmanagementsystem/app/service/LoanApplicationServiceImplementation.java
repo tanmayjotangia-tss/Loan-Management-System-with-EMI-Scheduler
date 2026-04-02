@@ -14,7 +14,10 @@ import com.loanmanagementsystem.app.repository.BorrowerRepository;
 import com.loanmanagementsystem.app.repository.LoanApplicationRepository;
 import com.loanmanagementsystem.app.repository.LoanOfficerRepository;
 import com.loanmanagementsystem.app.repository.LoanPropertiesRepository;
+import com.loanmanagementsystem.app.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -172,6 +175,17 @@ public class LoanApplicationServiceImplementation implements LoanApplicationServ
         LoanApplication application = loanApplicationRepository.findById(applicationId)
                 .orElseThrow(() -> new RuntimeException("Loan application not found with id: " + applicationId));
         return loanApplicationMapper.toResponse(application);
+    }
+
+    @Override
+    public List<LoanApplicationResponse> getCurrentUserApplications() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails user = (CustomUserDetails) auth.getPrincipal();
+
+        return loanApplicationRepository.findAllByBorrowerId(user.getUserId())
+                .stream()
+                .map(loanApplicationMapper::toResponse)
+                .toList();
     }
 
     @Override

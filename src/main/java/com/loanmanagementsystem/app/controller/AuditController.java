@@ -22,30 +22,6 @@ public class AuditController {
 
     private final AuditService auditService;
 
-    public record AuditLogRequest(
-            Long userId,
-            EntityType entityType,
-            Long entityId,
-            AuditAction action,
-            String oldValue,
-            String newValue
-    ) {}
-
-    @PostMapping("/log")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<String>> logAction(@RequestBody AuditLogRequest request) {
-        auditService.logAction(
-                request.userId(),
-                request.entityType(),
-                request.entityId(),
-                request.action(),
-                request.oldValue(),
-                request.newValue()
-        );
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success(HttpStatus.CREATED.value(), "Audit log created successfully", null));
-    }
-
     @GetMapping("/user/{userId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<List<AuditLogResponse>>> getLogsByUserId(@PathVariable Long userId) {

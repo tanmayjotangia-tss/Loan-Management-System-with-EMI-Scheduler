@@ -14,8 +14,6 @@ import java.util.Optional;
 @Repository
 public interface EmiRepository extends JpaRepository<Emi, Long> {
 
-    List<Emi> findAllByLoanIdOrderByInstallmentNumberAsc(Long loanId);
-
     @Query("""
     SELECT e FROM Emi e
     WHERE e.loan.id = :loanId
@@ -62,8 +60,6 @@ public interface EmiRepository extends JpaRepository<Emi, Long> {
     )
 """)
     List<Emi> findAllActiveEmisByLoanId(@Param("loanId") Long loanId);
-
-    Optional<Emi> findByLoanIdAndInstallmentNumber(Long loanId, Integer installmentNumber);
 
     boolean existsByLoanIdAndStatusNot(Long loanId, EmiStatus emiStatus);
 

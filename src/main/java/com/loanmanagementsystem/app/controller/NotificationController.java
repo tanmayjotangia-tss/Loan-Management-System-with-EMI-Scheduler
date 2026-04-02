@@ -24,24 +24,9 @@ public class NotificationController {
 
     private final NotificationService notificationService;
 
-    @PostMapping("/user/{userId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'LOAN_OFFICER')")
-    public ResponseEntity<ApiResponse<String>> sendNotification(
-            @PathVariable Long userId,
-            @RequestParam NotificationType type,
-            @RequestBody Map<String, String> request) {
-
-        String subject = request.get("subject");
-        String message = request.get("message");
-
-        notificationService.sendNotification(userId, type, subject, message);
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success(HttpStatus.CREATED.value(), "Notification sent successfully", null));
-    }
-
     @GetMapping("/me")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<ApiResponse<List<NotificationResponse>>> getMyNotifications(@AuthenticationPrincipal CustomUserDetails userDetails) {
+    @PreAuthorize("hasRole('BORROWER')")
+    public ResponseEntity<ApiResponse<List<NotificationResponse>>> getNotifications(@AuthenticationPrincipal CustomUserDetails userDetails) {
         List<NotificationResponse> responses = notificationService.getNotificationsByUserId(userDetails.getUserId());
         return ResponseEntity.ok(ApiResponse.success(responses));
     }
@@ -54,8 +39,8 @@ public class NotificationController {
     }
 
     @GetMapping("/{id}/me")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<ApiResponse<NotificationResponse>> getMyNotificationById(
+    @PreAuthorize("hasRole('BORROWER')")
+    public ResponseEntity<ApiResponse<NotificationResponse>> getNotificationById(
             @PathVariable Long id,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         NotificationResponse response = notificationService.getNotificationById(id, userDetails.getUserId());

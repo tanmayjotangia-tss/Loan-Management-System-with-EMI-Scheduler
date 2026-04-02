@@ -16,4 +16,5 @@ public interface LoanApplicationService {
     LoanApplicationResponse getApplicationForReview(Long applicationId);
     LoanApplicationResponse suggestStrategy(Long applicationId);
     LoanApplicationResponse reviewApplication(Long applicationId, Long officerId, LoanReviewRequest request);
+    List<LoanApplicationResponse> getCurrentUserApplications();
 }

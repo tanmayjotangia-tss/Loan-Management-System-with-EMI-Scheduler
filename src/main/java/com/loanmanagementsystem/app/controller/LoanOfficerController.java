@@ -38,13 +38,13 @@ public class LoanOfficerController {
 
     @GetMapping("/profile")
     @PreAuthorize("hasRole('LOAN_OFFICER')")
-    public ResponseEntity<ApiResponse<LoanOfficerResponse>> getMyProfile(@AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<ApiResponse<LoanOfficerResponse>> getProfile(@AuthenticationPrincipal CustomUserDetails userDetails) {
         LoanOfficerResponse response = loanOfficerService.getLoanOfficerById(userDetails.getUserId());
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('LOAN_OFFICER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN')")
     public ResponseEntity<ApiResponse<LoanOfficerResponse>> getLoanOfficerById(@PathVariable Long id) {
         LoanOfficerResponse response = loanOfficerService.getLoanOfficerById(id);
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -52,7 +52,7 @@ public class LoanOfficerController {
 
     @PatchMapping("/availability")
     @PreAuthorize("hasRole('LOAN_OFFICER')")
-    public ResponseEntity<ApiResponse<String>> updateMyAvailability(
+    public ResponseEntity<ApiResponse<String>> updateAvailability(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestParam Boolean isAvailable) {
         loanOfficerService.updateLoanOfficerAvailability(userDetails.getUserId(), isAvailable);

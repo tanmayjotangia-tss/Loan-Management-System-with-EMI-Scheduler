@@ -32,7 +32,7 @@ public class BorrowerController {
 
     @GetMapping("/profile")
     @PreAuthorize("hasRole('BORROWER')")
-    public ResponseEntity<ApiResponse<BorrowerResponse>> getMyProfile(@AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<ApiResponse<BorrowerResponse>> getProfile(@AuthenticationPrincipal CustomUserDetails userDetails) {
         BorrowerResponse response = borrowerService.getBorrowerById(userDetails.getUserId());
         return ResponseEntity.ok(ApiResponse.success(response));
     }
@@ -46,17 +46,10 @@ public class BorrowerController {
 
     @PutMapping("/profile")
     @PreAuthorize("hasRole('BORROWER')")
-    public ResponseEntity<ApiResponse<String>> updateMyProfile(
+    public ResponseEntity<ApiResponse<String>> updateProfile(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @Valid @RequestBody UpdateUserRequest request) {
         borrowerService.updateBorrower(userDetails.getUserId(), request);
         return ResponseEntity.ok(ApiResponse.success("Profile updated successfully."));
-    }
-
-    @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<String>> updateBorrower(@PathVariable Long id, @Valid @RequestBody UpdateUserRequest request) {
-        borrowerService.updateBorrower(id, request);
-        return ResponseEntity.ok(ApiResponse.success("Borrower updated successfully."));
     }
 }

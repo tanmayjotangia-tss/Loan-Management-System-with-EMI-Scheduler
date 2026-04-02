@@ -34,8 +34,8 @@ public class EmiReminderScheduler {
     private final CreditScoreService creditScoreService;
     private final BorrowerRepository borrowerRepository;
 
-//    @Scheduled(cron = "*/30 * * * * ?")
-    @Scheduled(cron = "0 0 0 * * ?")
+    @Scheduled(cron = "*/30 * * * * ?")
+//    @Scheduled(cron = "0 0 0 * * ?")
     @Transactional
     public void processEmiNotifications() {
         log.info("EMI Scheduler started");

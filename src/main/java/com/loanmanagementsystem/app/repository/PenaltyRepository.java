@@ -17,6 +17,4 @@ public interface PenaltyRepository extends JpaRepository<Penalty, Long> {
     Optional<Penalty> findByEmiId(Long emiId);
 
     List<Penalty> findAllByEmiId(Long emiId);
-
-    boolean existsByEmiId(Long emiId);
 }

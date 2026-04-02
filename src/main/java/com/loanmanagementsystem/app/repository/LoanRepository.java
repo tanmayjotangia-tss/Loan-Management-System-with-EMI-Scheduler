@@ -21,6 +21,4 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
     List<Loan> findAllByBorrowerIdAndStatus(Long borrowerId, LoanStatus status);
 
     Optional<Loan> findByLoanApplicationId(Long loanApplicationId);
-
-    int countByBorrowerIdAndStatus(Long borrowerId, LoanStatus status);
 }

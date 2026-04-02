@@ -20,5 +20,4 @@ public interface LoanApplicationRepository extends JpaRepository<LoanApplication
 
     Optional<LoanApplication> findByIdAndStatus(Long id, LoanApplicationStatus status);
 
-    int countByBorrowerIdAndStatus(Long borrowerId, LoanApplicationStatus status);
 }

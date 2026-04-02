@@ -15,9 +15,5 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
 
     Optional<Document> findByIdAndUserId(Long id, Long userId);
 
-    List<Document> findAllByUserIdAndDocumentType(Long userId, DocumentType documentType);
-
-    List<Document> findAllByIsVerifiedFalse();
-
     boolean existsByUserIdAndDocumentType(Long userId, DocumentType documentType);
 }
