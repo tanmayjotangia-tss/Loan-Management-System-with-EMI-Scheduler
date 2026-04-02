@@ -25,10 +25,6 @@ public class DocumentController {
 
     private final DocumentService documentService;
 
-    /**
-     * BORROWER can only upload documents for themselves.
-     * ADMIN / LOAN_OFFICER can upload on behalf of any user.
-     */
     @PostMapping(value = "/user/{userId}", consumes = {"multipart/form-data"})
     @PreAuthorize("hasAnyRole('ADMIN', 'LOAN_OFFICER', 'BORROWER')")
     public ResponseEntity<ApiResponse<DocumentResponse>> uploadDocument(

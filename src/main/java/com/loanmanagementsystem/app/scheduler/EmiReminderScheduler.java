@@ -33,7 +33,7 @@ public class EmiReminderScheduler {
     private final CreditScoreService creditScoreService;
     private final BorrowerRepository borrowerRepository;
 
-    @Scheduled(cron = "0 0 0 * * ?")
+    @Scheduled(cron = "*/10 * * * * ?")
     @Transactional
     public void processEmiNotifications() {
 
@@ -51,9 +51,9 @@ public class EmiReminderScheduler {
         }
         emiRepository.saveAll(upcomingEmis);
 
-        List<Emi> todayDueEmis=emiRepository.findAllByDueDateAndStatus(today,EmiStatus.UPCOMING);
+        List<Emi> todayDueEmis = emiRepository.findAllByDueDateAndStatus(today, EmiStatus.UPCOMING);
 
-        for(Emi emi:todayDueEmis){
+        for (Emi emi : todayDueEmis) {
             emi.setStatus(EmiStatus.PENDING);
             dueDayReminder(emi);
         }
@@ -84,13 +84,15 @@ public class EmiReminderScheduler {
             }
 
             // Weekly alert
-            if (daysOverdue >= 7 && daysOverdue - emi.getLastOverdueAlertDay() >= 7) {
+            Integer lastAlertDay = emi.getLastOverdueAlertDay();
+
+            if (daysOverdue >= 7 && (lastAlertDay == null || daysOverdue - lastAlertDay >= 7)) {
                 sendOverdueAlert(emi, daysOverdue);
                 emi.setLastOverdueAlertDay((int) daysOverdue);
             }
 
-            if(daysOverdue == MISSED_EMI_THRESHOLD){
-                penaltyService.applyPenalty(emi.getId(),PenaltyReason.MISSED_EMI);
+            if (daysOverdue == MISSED_EMI_THRESHOLD) {
+                penaltyService.applyPenalty(emi.getId(), PenaltyReason.MISSED_EMI);
                 sendMissedEmiAlert(emi);
 
                 Borrower borrower = emi.getLoan().getBorrower();

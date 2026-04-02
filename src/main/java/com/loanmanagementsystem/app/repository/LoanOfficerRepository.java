@@ -16,6 +16,4 @@ public interface LoanOfficerRepository extends JpaRepository<LoanOfficer, Long> 
     List<LoanOfficer> findAllByOfficerType(OfficerType officerType);
 
     List<LoanOfficer> findAllByIsAvailableTrueAndOfficerType(OfficerType officerType);
-
-    Optional<LoanOfficer> findByEmployeeNumber(String employeeNumber);
 }

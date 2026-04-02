@@ -27,10 +27,10 @@ public class LoanController {
     private final LoanService loanService;
 
     @PostMapping("/application/{applicationId}")
-    @PreAuthorize("hasAnyRole('LOAN_OFFICER', 'ADMIN')")
+    @PreAuthorize("hasRole('LOAN_OFFICER')")
     public ResponseEntity<ApiResponse<LoanResponse>> createLoanFromApplication(
             @PathVariable Long applicationId,
-            @RequestParam StrategyType type) {
+            @RequestParam(required = false) StrategyType type) {
         LoanResponse response = loanService.createLoanFromApplication(applicationId, type);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.created(response));
     }
@@ -81,7 +81,7 @@ public class LoanController {
     }
 
     @PostMapping("/{loanId}/close")
-    @PreAuthorize("hasAnyRole('LOAN_OFFICER', 'ADMIN')")
+    @PreAuthorize("hasRole('LOAN_OFFICER')")
     public ResponseEntity<ApiResponse<LoanResponse>> closeLoan(@PathVariable Long loanId) {
         LoanResponse response = loanService.closeLoan(loanId);
         return ResponseEntity.ok(ApiResponse.success(response));
