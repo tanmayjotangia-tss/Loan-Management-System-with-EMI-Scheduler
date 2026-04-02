@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -33,21 +34,22 @@ public class EmiReminderScheduler {
     private final CreditScoreService creditScoreService;
     private final BorrowerRepository borrowerRepository;
 
-    @Scheduled(cron = "*/10 * * * * ?")
+//    @Scheduled(cron = "*/30 * * * * ?")
+    @Scheduled(cron = "0 0 0 * * ?")
     @Transactional
     public void processEmiNotifications() {
-
         log.info("EMI Scheduler started");
 
         LocalDate today = LocalDate.now(ZoneId.of("Asia/Kolkata"));
         LocalDate in3Days = today.plusDays(3);
 
-        // 3 days prior
         List<Emi> upcomingEmis = emiRepository.findUpcomingEmis(in3Days, EmiStatus.UPCOMING);
 
         for (Emi emi : upcomingEmis) {
-            sendReminder(emi);
-            emi.setReminderSent(true);
+            if (!emi.isReminderSent()) {
+                sendReminder(emi);
+                emi.setReminderSent(true);
+            }
         }
         emiRepository.saveAll(upcomingEmis);
 
@@ -59,54 +61,69 @@ public class EmiReminderScheduler {
         }
         emiRepository.saveAll(todayDueEmis);
 
-        List<Emi> overdueEmis = emiRepository.findOverdueEmis(today);
+        List<Emi> candidateEmis = emiRepository.findByStatusAndDueDateBefore(EmiStatus.PENDING, today);
 
-        for (Emi emi : overdueEmis) {
+        List<Emi> updatedEmis = new ArrayList<>();
 
-            long daysOverdue = ChronoUnit.DAYS.between(emi.getDueDate(), today);
+        for (Emi emi : candidateEmis) {
 
-            if (daysOverdue <= 0) continue;
+            LocalDate dueDate = emi.getDueDate();
+            int graceDays = emi.getLoan().getGracePeriodDays() != null
+                    ? emi.getLoan().getGracePeriodDays()
+                    : 0;
 
-            // Mark overdue
-            if (emi.getStatus() == EmiStatus.PENDING) {
+            LocalDate overdueStartDate = dueDate.plusDays(graceDays);
+
+            // Skip if still within grace period
+            if (!today.isAfter(overdueStartDate)) {
+                continue;
+            }
+
+            long daysOverdue = ChronoUnit.DAYS.between(overdueStartDate, today);
+
+            if (!emi.isOverdueMarked()) {
+
                 emi.setStatus(EmiStatus.OVERDUE);
-                sendOverdueAlert(emi, daysOverdue);
                 emi.setOverdueMarked(true);
+
+                sendOverdueAlert(emi, daysOverdue);
                 penaltyService.applyPenalty(emi.getId(), PenaltyReason.LATE_PAYMENT);
 
                 Borrower borrower = emi.getLoan().getBorrower();
-
                 int score = creditScoreService.updateOnOverdue(borrower.getCreditScore());
-
                 borrower.setCreditScore(score);
                 borrowerRepository.save(borrower);
-
             }
 
-            // Weekly alert
             Integer lastAlertDay = emi.getLastOverdueAlertDay();
 
-            if (daysOverdue >= 7 && (lastAlertDay == null || daysOverdue - lastAlertDay >= 7)) {
+            if (daysOverdue >= 7 &&
+                    (lastAlertDay == null || daysOverdue - lastAlertDay >= 7)) {
+
                 sendOverdueAlert(emi, daysOverdue);
                 emi.setLastOverdueAlertDay((int) daysOverdue);
             }
 
-            if (daysOverdue == MISSED_EMI_THRESHOLD) {
+            if (daysOverdue >= MISSED_EMI_THRESHOLD && !emi.isMissedEmiMarked()) {
+
                 penaltyService.applyPenalty(emi.getId(), PenaltyReason.MISSED_EMI);
                 sendMissedEmiAlert(emi);
 
                 Borrower borrower = emi.getLoan().getBorrower();
-
                 int score = creditScoreService.updateOnMissedEmi(borrower.getCreditScore());
-
                 borrower.setCreditScore(score);
                 borrowerRepository.save(borrower);
+
                 emi.setMissedEmiMarked(true);
             }
-            emiRepository.save(emi);
+
+            updatedEmis.add(emi);
         }
 
-        log.info("EMI Scheduler completed: {} reminders, {} overdue processed", upcomingEmis.size(), overdueEmis.size());
+        emiRepository.saveAll(updatedEmis);
+
+        log.info("EMI Scheduler completed: {} reminders, {} overdue processed",
+                upcomingEmis.size(), updatedEmis.size());
     }
 
     private void sendReminder(Emi emi) {

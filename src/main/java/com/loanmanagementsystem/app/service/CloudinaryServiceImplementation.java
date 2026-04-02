@@ -17,7 +17,6 @@ public class CloudinaryServiceImplementation implements CloudinaryService {
     @Override
     public String uploadFile(MultipartFile file) {
         try {
-            // ✅ 1. Check empty
             if (file.isEmpty()) {
                 throw new RuntimeException("File is empty");
             }
@@ -29,7 +28,6 @@ public class CloudinaryServiceImplementation implements CloudinaryService {
                 throw new RuntimeException("Invalid file");
             }
 
-            // ✅ 2. Allow PDF + Images
             boolean isPdf = contentType.equals("application/pdf") &&
                     filename.toLowerCase().endsWith(".pdf");
 
@@ -39,10 +37,8 @@ public class CloudinaryServiceImplementation implements CloudinaryService {
                 throw new RuntimeException("Only PDF and Image files are allowed");
             }
 
-            // ✅ 3. Decide resource_type
             String resourceType = isPdf ? "raw" : "image";
 
-            // ✅ 4. Upload
             @SuppressWarnings("unchecked")
             Map<String, Object> uploadResult = cloudinary.uploader().upload(
                     file.getBytes(),
@@ -54,7 +50,6 @@ public class CloudinaryServiceImplementation implements CloudinaryService {
             if (url == null) {
                 throw new RuntimeException("Cloudinary upload failed");
             }
-
             return url.toString();
 
         } catch (Exception e) {

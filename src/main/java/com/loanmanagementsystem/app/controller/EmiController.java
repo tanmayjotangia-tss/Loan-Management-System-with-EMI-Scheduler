@@ -2,7 +2,6 @@ package com.loanmanagementsystem.app.controller;
 
 import com.loanmanagementsystem.app.dto.response.ApiResponse;
 import com.loanmanagementsystem.app.dto.response.EmiResponse;
-import com.loanmanagementsystem.app.dto.response.LoanResponse;
 import com.loanmanagementsystem.app.service.EmiService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,21 +19,26 @@ import java.util.List;
 @RequiredArgsConstructor
 @Validated
 public class EmiController {
-    private EmiService emiService;
+    private final EmiService emiService;
 
-    @GetMapping("/{loanId}/unpaid")
-    @PreAuthorize("hasAnyRole('LOAN_OFFICER', 'ADMIN', 'BORROWER')")
+    @GetMapping("/borrower/{borrowerId}/loan/{loanId}/unpaid")
+    @PreAuthorize("hasAnyRole('LOAN_OFFICER') or " +
+            "(hasRole('BORROWER') and #borrowerId == authentication.principal.userId)")
     public ResponseEntity<ApiResponse<List<EmiResponse>>> getAllUnpaidEmis(
+            @PathVariable Long borrowerId,
             @PathVariable Long loanId) {
-        List<EmiResponse> responses = emiService.getUnpaidEmis(loanId);
-        return ResponseEntity.ok(ApiResponse.success(responses));
+
+        return ResponseEntity.ok(
+                ApiResponse.success(emiService.getUnpaidEmis(loanId))
+        );
     }
 
-    @GetMapping("/{loanId}")
-    @PreAuthorize("hasAnyRole('LOAN_OFFICER', 'ADMIN', 'BORROWER')")
-    public ResponseEntity<ApiResponse<List<EmiResponse>>> getAllLoans(
+    @GetMapping("/borrower/{borrowerId}/loan/{loanId}")
+    @PreAuthorize("hasAnyRole('LOAN_OFFICER', 'ADMIN') or " +
+            "(hasRole('BORROWER') and #borrowerId == authentication.principal.userId)")
+    public ResponseEntity<ApiResponse<List<EmiResponse>>> getEmis(
+            @PathVariable Long borrowerId,
             @PathVariable Long loanId) {
-        List<EmiResponse> responses = emiService.getAllEmis(loanId);
-        return ResponseEntity.ok(ApiResponse.success(responses));
+        return ResponseEntity.ok(ApiResponse.success(emiService.getAllEmis(loanId)));
     }
 }
