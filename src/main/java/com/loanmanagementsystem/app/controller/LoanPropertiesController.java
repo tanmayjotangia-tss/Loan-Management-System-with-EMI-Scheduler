@@ -20,9 +20,14 @@ public class LoanPropertiesController {
 
     @GetMapping("/{loanType}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<ApiResponse<LoanProperties>> getLoanProperties(@PathVariable LoanType loanType) {
+    public ResponseEntity<ApiResponse<LoanProperties>> getLoanProperties(
+            @PathVariable LoanType loanType) {
+
         LoanProperties response = loanPropertiesService.getLoanProperties(loanType);
-        return ResponseEntity.ok(ApiResponse.success(response));
+
+        return ResponseEntity.ok(
+                ApiResponse.success(200, "Loan properties fetched successfully", response)
+        );
     }
 
     @PutMapping("/{loanType}")
@@ -30,7 +35,12 @@ public class LoanPropertiesController {
     public ResponseEntity<ApiResponse<LoanProperties>> updateLoanProperties(
             @PathVariable LoanType loanType,
             @RequestBody LoanProperties updatedProperties) {
-        LoanProperties response = loanPropertiesService.updateLoanProperties(loanType, updatedProperties);
-        return ResponseEntity.ok(ApiResponse.success(response));
+
+        LoanProperties response =
+                loanPropertiesService.updateLoanProperties(loanType, updatedProperties);
+
+        return ResponseEntity.ok(
+                ApiResponse.success(200, "Loan properties updated successfully", response)
+        );
     }
 }

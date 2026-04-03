@@ -27,28 +27,46 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/register/borrower")
-    public ResponseEntity<ApiResponse<AuthResponse>> registerBorrower(@Valid @RequestBody RegisterUserRequest request) {
+    public ResponseEntity<ApiResponse<AuthResponse>> registerBorrower(
+            @Valid @RequestBody RegisterUserRequest request) {
+
         AuthResponse response = authService.registerBorrower(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.created(response));
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success(201, "Borrower registered successfully", response));
     }
 
     @PostMapping("/register/officer")
-    public ResponseEntity<ApiResponse<AuthResponse>> registerLoanOfficer(@Valid @RequestBody RegisterOfficerRequest request) {
+    public ResponseEntity<ApiResponse<AuthResponse>> registerLoanOfficer(
+            @Valid @RequestBody RegisterOfficerRequest request) {
+
         AuthResponse response = authService.registerLoanOfficer(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.created(response));
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success(201, "Loan officer registered successfully", response));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest request) {
+    public ResponseEntity<ApiResponse<AuthResponse>> login(
+            @Valid @RequestBody LoginRequest request) {
+
         AuthResponse response = authService.login(request);
-        return ResponseEntity.ok(ApiResponse.success(response));
+
+        return ResponseEntity.ok(
+                ApiResponse.success(200, "Login successful", response)
+        );
     }
 
     @GetMapping("/me")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<ApiResponse<UserResponse>> getCurrentUser(@AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<ApiResponse<UserResponse>> getCurrentUser(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+
         UserResponse response = authService.getCurrentUser(userDetails.getUserId());
-        return ResponseEntity.ok(ApiResponse.success(response));
+
+        return ResponseEntity.ok(
+                ApiResponse.success(200, "User details fetched successfully", response)
+        );
     }
 
     @PatchMapping("/me/credentials")
@@ -56,14 +74,23 @@ public class AuthController {
     public ResponseEntity<ApiResponse<String>> updateCredentials(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @Valid @RequestBody UpdateCredentialsRequest request) {
+
         authService.updateCredentials(userDetails.getUserId(), request);
-        return ResponseEntity.ok(ApiResponse.success("Credentials updated successfully."));
+
+        return ResponseEntity.ok(
+                ApiResponse.success(200, "Credentials updated successfully", null)
+        );
     }
 
     @PostMapping("/me/deactivate")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<ApiResponse<String>> deactivateAccount(@AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<ApiResponse<String>> deactivateAccount(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+
         authService.deactivateAccount(userDetails.getUserId());
-        return ResponseEntity.ok(ApiResponse.success("Account deactivated successfully."));
+
+        return ResponseEntity.ok(
+                ApiResponse.success(200, "Account deactivated successfully", null)
+        );
     }
 }

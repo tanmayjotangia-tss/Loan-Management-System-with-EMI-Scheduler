@@ -38,7 +38,9 @@ public class DocumentController {
         }
 
         DocumentResponse response = documentService.uploadDocument(userId, request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.created(response));
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success(201, "Document uploaded successfully", response));
     }
 
     @GetMapping("/user/{userId}")
@@ -46,7 +48,10 @@ public class DocumentController {
             "(hasRole('BORROWER') and #userId == authentication.principal.userId)")
     public ResponseEntity<ApiResponse<List<DocumentResponse>>> getDocumentsByUserId(@PathVariable Long userId) {
         List<DocumentResponse> responses = documentService.getDocumentsByUserId(userId);
-        return ResponseEntity.ok(ApiResponse.success(responses));
+
+        return ResponseEntity.ok(
+                ApiResponse.success(200, "Documents fetched successfully", responses)
+        );
     }
 
     @GetMapping("/{documentId}/user/{userId}")
@@ -55,8 +60,12 @@ public class DocumentController {
     public ResponseEntity<ApiResponse<DocumentResponse>> getDocumentById(
             @PathVariable Long userId,
             @PathVariable Long documentId) {
+
         DocumentResponse response = documentService.getDocumentById(userId, documentId);
-        return ResponseEntity.ok(ApiResponse.success(response));
+
+        return ResponseEntity.ok(
+                ApiResponse.success(200, "Document fetched successfully", response)
+        );
     }
 
     @PostMapping("/{documentId}/verify")
@@ -64,7 +73,11 @@ public class DocumentController {
     public ResponseEntity<ApiResponse<DocumentResponse>> verifyDocument(
             @PathVariable Long documentId,
             @RequestParam Long officerId) {
+
         DocumentResponse response = documentService.verifyDocument(documentId, officerId);
-        return ResponseEntity.ok(ApiResponse.success(response));
+
+        return ResponseEntity.ok(
+                ApiResponse.success(200, "Document verified successfully", response)
+        );
     }
 }

@@ -27,21 +27,31 @@ public class BorrowerController {
     @PreAuthorize("hasAnyRole('LOAN_OFFICER', 'ADMIN')")
     public ResponseEntity<ApiResponse<List<BorrowerResponse>>> getAllBorrowers() {
         List<BorrowerResponse> responses = borrowerService.getAllBorrowers();
-        return ResponseEntity.ok(ApiResponse.success(responses));
+        return ResponseEntity.ok(
+                ApiResponse.success(200, "Borrowers fetched successfully", responses)
+        );
     }
 
     @GetMapping("/profile")
     @PreAuthorize("hasRole('BORROWER')")
-    public ResponseEntity<ApiResponse<BorrowerResponse>> getProfile(@AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<ApiResponse<BorrowerResponse>> getProfile(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+
         BorrowerResponse response = borrowerService.getBorrowerById(userDetails.getUserId());
-        return ResponseEntity.ok(ApiResponse.success(response));
+
+        return ResponseEntity.ok(
+                ApiResponse.success(200, "Borrower profile fetched successfully", response)
+        );
     }
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('LOAN_OFFICER', 'ADMIN')")
     public ResponseEntity<ApiResponse<BorrowerResponse>> getBorrowerById(@PathVariable Long id) {
         BorrowerResponse response = borrowerService.getBorrowerById(id);
-        return ResponseEntity.ok(ApiResponse.success(response));
+
+        return ResponseEntity.ok(
+                ApiResponse.success(200, "Borrower details fetched successfully", response)
+        );
     }
 
     @PutMapping("/profile")
@@ -49,7 +59,11 @@ public class BorrowerController {
     public ResponseEntity<ApiResponse<String>> updateProfile(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @Valid @RequestBody UpdateUserRequest request) {
+
         borrowerService.updateBorrower(userDetails.getUserId(), request);
-        return ResponseEntity.ok(ApiResponse.success("Profile updated successfully."));
+
+        return ResponseEntity.ok(
+                ApiResponse.success(200, "Borrower profile updated successfully", null)
+        );
     }
 }

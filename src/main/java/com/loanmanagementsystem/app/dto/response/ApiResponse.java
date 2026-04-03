@@ -20,28 +20,4 @@ public class ApiResponse<T> {
                 .data(data)
                 .build();
     }
-
-    public static <T> ApiResponse<T> success(T data) {
-        return success(200, "Success", data);
-    }
-
-    public static <T> ApiResponse<T> created(T data) {
-        return success(201, "Resource created successfully", data);
-    }
-
-    public static <T> ApiResponse<T> noContent() {
-        return ApiResponse.<T>builder()
-                .status(204)
-                .message("No content")
-                .data(null)
-                .build();
-    }
-
-    public static <T> ApiResponse<T> error(int status, String message) {
-        return ApiResponse.<T>builder()
-                .status(status)
-                .message(message)
-                .data(null)
-                .build();
-    }
 }
