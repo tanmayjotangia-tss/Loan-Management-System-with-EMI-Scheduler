@@ -25,29 +25,48 @@ public class LoanOfficerController {
     @GetMapping
     @PreAuthorize("hasAnyRole('LOAN_OFFICER', 'ADMIN')")
     public ResponseEntity<ApiResponse<List<LoanOfficerResponse>>> getAllLoanOfficers() {
+
         List<LoanOfficerResponse> responses = loanOfficerService.getAllLoanOfficers();
-        return ResponseEntity.ok(ApiResponse.success(responses));
+
+        return ResponseEntity.ok(
+                ApiResponse.success(200, "Loan officers fetched successfully", responses)
+        );
     }
 
     @GetMapping("/available")
     @PreAuthorize("hasAnyRole('LOAN_OFFICER', 'ADMIN')")
     public ResponseEntity<ApiResponse<List<LoanOfficerResponse>>> getAvailableLoanOfficers() {
+
         List<LoanOfficerResponse> responses = loanOfficerService.getAvailableLoanOfficers();
-        return ResponseEntity.ok(ApiResponse.success(responses));
+
+        return ResponseEntity.ok(
+                ApiResponse.success(200, "Available loan officers fetched successfully", responses)
+        );
     }
 
     @GetMapping("/profile")
     @PreAuthorize("hasRole('LOAN_OFFICER')")
-    public ResponseEntity<ApiResponse<LoanOfficerResponse>> getProfile(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        LoanOfficerResponse response = loanOfficerService.getLoanOfficerById(userDetails.getUserId());
-        return ResponseEntity.ok(ApiResponse.success(response));
+    public ResponseEntity<ApiResponse<LoanOfficerResponse>> getProfile(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+
+        LoanOfficerResponse response =
+                loanOfficerService.getLoanOfficerById(userDetails.getUserId());
+
+        return ResponseEntity.ok(
+                ApiResponse.success(200, "Loan officer profile fetched successfully", response)
+        );
     }
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN')")
-    public ResponseEntity<ApiResponse<LoanOfficerResponse>> getLoanOfficerById(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<LoanOfficerResponse>> getLoanOfficerById(
+            @PathVariable Long id) {
+
         LoanOfficerResponse response = loanOfficerService.getLoanOfficerById(id);
-        return ResponseEntity.ok(ApiResponse.success(response));
+
+        return ResponseEntity.ok(
+                ApiResponse.success(200, "Loan officer fetched successfully", response)
+        );
     }
 
     @PatchMapping("/availability")
@@ -55,8 +74,12 @@ public class LoanOfficerController {
     public ResponseEntity<ApiResponse<String>> updateAvailability(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestParam Boolean isAvailable) {
+
         loanOfficerService.updateLoanOfficerAvailability(userDetails.getUserId(), isAvailable);
-        return ResponseEntity.ok(ApiResponse.success("Availability updated successfully."));
+
+        return ResponseEntity.ok(
+                ApiResponse.success(200, "Updated successfully", null)
+        );
     }
 
     @PatchMapping("/{id}/availability")
@@ -64,8 +87,12 @@ public class LoanOfficerController {
     public ResponseEntity<ApiResponse<String>> updateLoanOfficerAvailability(
             @PathVariable Long id,
             @RequestParam Boolean isAvailable) {
+
         loanOfficerService.updateLoanOfficerAvailability(id, isAvailable);
-        return ResponseEntity.ok(ApiResponse.success("Loan officer availability updated successfully."));
+
+        return ResponseEntity.ok(
+                ApiResponse.success(200, "Updated successfully", null)
+        );
     }
 
     @PatchMapping("/{id}/type")
@@ -73,7 +100,11 @@ public class LoanOfficerController {
     public ResponseEntity<ApiResponse<String>> updateLoanOfficerType(
             @PathVariable Long id,
             @RequestParam OfficerType type) {
+
         loanOfficerService.updateLoanOfficerType(id, type);
-        return ResponseEntity.ok(ApiResponse.success("Loan officer type updated successfully."));
+
+        return ResponseEntity.ok(
+                ApiResponse.success(200, "Loan officer type updated successfully", null)
+        );
     }
 }

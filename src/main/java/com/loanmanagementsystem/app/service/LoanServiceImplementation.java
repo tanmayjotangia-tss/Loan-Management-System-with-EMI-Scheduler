@@ -44,9 +44,12 @@ public class LoanServiceImplementation implements LoanService {
             throw new RuntimeException("Loan application must be APPROVED to create a loan. Current status: " + loanApplication.getStatus());
         }
 
-        // Check if a loan already exists for this application
         if (loanRepository.findByLoanApplicationId(applicationId).isPresent()) {
             throw new RuntimeException("A loan already exists for application id: " + applicationId);
+        }
+
+        if(loanRepository.findNumberOfActiveLoansByBorrowerId(loanApplication.getBorrower().getId())>=3){
+            throw new RuntimeException("User already have 3 active loans.");
         }
 
         LoanProperties loanProperties = loanPropertiesRepository.findByLoanType(loanApplication.getLoanType())

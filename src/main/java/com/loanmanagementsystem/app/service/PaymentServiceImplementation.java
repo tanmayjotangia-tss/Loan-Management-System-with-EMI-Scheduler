@@ -43,6 +43,13 @@ public class PaymentServiceImplementation implements PaymentService {
 
         Borrower borrower = loan.getBorrower();
 
+        Emi emi = emiRepository.findById(request.getEmiId())
+                .orElseThrow(() -> new RuntimeException("EMI not found with id: " + request.getEmiId()));
+
+        if (emi.getStatus() == EmiStatus.UPCOMING) {
+            throw new RuntimeException("This EMI is not payable yet");
+        }
+
         if (loan.getStatus() == LoanStatus.CLOSED) {
             throw new RuntimeException("Cannot make payment on a closed loan");
         }
@@ -51,15 +58,8 @@ public class PaymentServiceImplementation implements PaymentService {
             throw new RuntimeException("EMI ID is required for EMI payment");
         }
 
-        Emi emi = emiRepository.findById(request.getEmiId())
-                .orElseThrow(() -> new RuntimeException("EMI not found with id: " + request.getEmiId()));
-
         if (emi.getStatus() == EmiStatus.PAID) {
             throw new RuntimeException("EMI is already paid");
-        }
-
-        if (emi.getStatus() == EmiStatus.UPCOMING) {
-            throw new RuntimeException("This EMI is not payable yet");
         }
 
         if (!emi.getLoan().getId().equals(loan.getId())) {
@@ -118,12 +118,13 @@ public class PaymentServiceImplementation implements PaymentService {
         }
         Borrower borrower = loan.getBorrower();
 
-        if (!loanProperties.getForeclosureAllowed()) {
-            throw new RuntimeException("Foreclosure is not allowed for loan type: " + loan.getLoanType());
-        }
 
         if (loan.getStatus() == LoanStatus.CLOSED) {
             throw new RuntimeException("Cannot make payment on a closed loan");
+        }
+
+        if (!loanProperties.getForeclosureAllowed()) {
+            throw new RuntimeException("Foreclosure is not allowed for loan type: " + loan.getLoanType());
         }
 
         if (loanProperties.getMinEmiBeforeForeclosure() > emiService.getTotalUnpaidEmiByLoan(loan.getId())) {

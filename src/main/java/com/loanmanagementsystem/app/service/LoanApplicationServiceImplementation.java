@@ -10,10 +10,7 @@ import com.loanmanagementsystem.app.entity.LoanProperties;
 import com.loanmanagementsystem.app.entity.enums.*;
 import com.loanmanagementsystem.app.exception.BadRequestException;
 import com.loanmanagementsystem.app.mapper.LoanApplicationMapper;
-import com.loanmanagementsystem.app.repository.BorrowerRepository;
-import com.loanmanagementsystem.app.repository.LoanApplicationRepository;
-import com.loanmanagementsystem.app.repository.LoanOfficerRepository;
-import com.loanmanagementsystem.app.repository.LoanPropertiesRepository;
+import com.loanmanagementsystem.app.repository.*;
 import com.loanmanagementsystem.app.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -35,6 +32,7 @@ public class LoanApplicationServiceImplementation implements LoanApplicationServ
     private final LoanPropertiesRepository loanPropertiesRepository;
     private final LoanApplicationMapper loanApplicationMapper;
     private final NotificationService notificationService;
+    private final LoanRepository loanRepository;
 
 
     @Override
@@ -45,13 +43,19 @@ public class LoanApplicationServiceImplementation implements LoanApplicationServ
         LoanProperties loanProperties =loanPropertiesRepository.findByLoanType(request.getLoanType())
                 .orElseThrow(() -> new RuntimeException("Loan properties not found"));
 
-        // Validate requested amount is within allowed range
+        if(borrower.getIsVerified()){
+            throw new RuntimeException("First Verify Your Documents");
+        }
+
+        if(loanRepository.findNumberOfActiveLoansByBorrowerId(borrowerId)>=3){
+            throw new RuntimeException("You can't apply for more than 3 loans at a time.");
+        }
+
         if (request.getRequestedAmount().compareTo(loanProperties.getMinAmount()) < 0
                 || request.getRequestedAmount().compareTo(loanProperties.getMaxAmount()) > 0) {
             throw new RuntimeException("Requested amount must be between " + loanProperties.getMinAmount() + " and " + loanProperties.getMaxAmount());
         }
 
-        // Validate requested tenure is within allowed range
         if (request.getRequestedTenureMonths() < loanProperties.getMinTenure()
                 || request.getRequestedTenureMonths() > loanProperties.getMaxTenure()) {
             throw new RuntimeException("Requested tenure must be between " + loanProperties.getMinTenure() + " and " + loanProperties.getMaxTenure() + " months");
@@ -233,6 +237,9 @@ public class LoanApplicationServiceImplementation implements LoanApplicationServ
         LoanOfficer loanOfficer = loanOfficerRepository.findById(officerId)
                 .orElseThrow(() -> new RuntimeException("Officer not found with id: " + officerId));
 
+        if(loanRepository.findNumberOfActiveLoansByBorrowerId(loanApplication.getBorrower().getId())>=3){
+            throw new RuntimeException("User already have 3 active loans.");
+        }
         loanApplication.setStatus(request.getStatus());
         loanApplication.setReviewedByOfficer(loanOfficer);
         loanApplication.setOfficerComment(request.getOfficerComment());

@@ -31,23 +31,30 @@ public class LoanController {
     public ResponseEntity<ApiResponse<LoanResponse>> createLoanFromApplication(
             @PathVariable Long applicationId,
             @RequestParam(required = false) StrategyType type) {
+
         LoanResponse response = loanService.createLoanFromApplication(applicationId, type);
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.created(response));
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success(201, "Loan created successfully from application", response));
     }
 
     @GetMapping
     @PreAuthorize("hasAnyRole('LOAN_OFFICER', 'ADMIN')")
     public ResponseEntity<ApiResponse<List<LoanResponse>>> getAllLoans() {
-        List<LoanResponse> responses = loanService.getAllLoans();
-        return ResponseEntity.ok(ApiResponse.success(responses));
-    }
 
+        List<LoanResponse> responses = loanService.getAllLoans();
+
+        return ResponseEntity.ok(
+                ApiResponse.success(200, "Loans fetched successfully", responses)
+        );
+    }
 
     @GetMapping("/{loanId}")
     @PreAuthorize("hasAnyRole('LOAN_OFFICER', 'ADMIN', 'BORROWER')")
     public ResponseEntity<ApiResponse<LoanResponse>> getLoanById(
             @PathVariable Long loanId,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
+
         LoanResponse response = loanService.getLoanById(loanId);
 
         if (userDetails.getRole().name().equals("BORROWER")
@@ -55,35 +62,56 @@ public class LoanController {
             throw new AccessDeniedException("You are not authorised to view this loan.");
         }
 
-        return ResponseEntity.ok(ApiResponse.success(response));
+        return ResponseEntity.ok(
+                ApiResponse.success(200, "Loan fetched successfully", response)
+        );
     }
 
     @GetMapping("/borrower/{borrowerId}")
     @PreAuthorize("hasAnyRole('LOAN_OFFICER', 'ADMIN') or " +
             "(hasRole('BORROWER') and #borrowerId == authentication.principal.userId)")
-    public ResponseEntity<ApiResponse<List<LoanResponse>>> getLoansByBorrowerId(@PathVariable Long borrowerId) {
+    public ResponseEntity<ApiResponse<List<LoanResponse>>> getLoansByBorrowerId(
+            @PathVariable Long borrowerId) {
+
         List<LoanResponse> responses = loanService.getLoansByBorrowerId(borrowerId);
-        return ResponseEntity.ok(ApiResponse.success(responses));
+
+        return ResponseEntity.ok(
+                ApiResponse.success(200, "Borrower loans fetched successfully", responses)
+        );
     }
 
     @GetMapping("/type/{loanType}")
     @PreAuthorize("hasAnyRole('LOAN_OFFICER', 'ADMIN')")
-    public ResponseEntity<ApiResponse<List<LoanResponse>>> getLoansByType(@PathVariable LoanType loanType) {
+    public ResponseEntity<ApiResponse<List<LoanResponse>>> getLoansByType(
+            @PathVariable LoanType loanType) {
+
         List<LoanResponse> responses = loanService.getLoansByType(loanType);
-        return ResponseEntity.ok(ApiResponse.success(responses));
+
+        return ResponseEntity.ok(
+                ApiResponse.success(200, "Loans for type fetched successfully", responses)
+        );
     }
 
     @GetMapping("/status/{status}")
     @PreAuthorize("hasAnyRole('LOAN_OFFICER', 'ADMIN')")
-    public ResponseEntity<ApiResponse<List<LoanResponse>>> getLoansByStatus(@PathVariable LoanStatus status) {
+    public ResponseEntity<ApiResponse<List<LoanResponse>>> getLoansByStatus(
+            @PathVariable LoanStatus status) {
+
         List<LoanResponse> responses = loanService.getLoansByStatus(status);
-        return ResponseEntity.ok(ApiResponse.success(responses));
+
+        return ResponseEntity.ok(
+                ApiResponse.success(200, "Loans for status fetched successfully", responses)
+        );
     }
 
     @PostMapping("/{loanId}/close")
     @PreAuthorize("hasRole('LOAN_OFFICER')")
     public ResponseEntity<ApiResponse<LoanResponse>> closeLoan(@PathVariable Long loanId) {
+
         LoanResponse response = loanService.closeLoan(loanId);
-        return ResponseEntity.ok(ApiResponse.success(response));
+
+        return ResponseEntity.ok(
+                ApiResponse.success(200, "Loan closed successfully", response)
+        );
     }
 }

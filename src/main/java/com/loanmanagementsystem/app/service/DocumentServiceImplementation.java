@@ -2,6 +2,7 @@ package com.loanmanagementsystem.app.service;
 
 import com.loanmanagementsystem.app.dto.request.DocumentUploadRequest;
 import com.loanmanagementsystem.app.dto.response.DocumentResponse;
+import com.loanmanagementsystem.app.entity.Borrower;
 import com.loanmanagementsystem.app.entity.Document;
 import com.loanmanagementsystem.app.entity.LoanOfficer;
 import com.loanmanagementsystem.app.entity.User;
@@ -9,6 +10,7 @@ import com.loanmanagementsystem.app.mapper.DocumentMapper;
 import com.loanmanagementsystem.app.repository.DocumentRepository;
 import com.loanmanagementsystem.app.repository.LoanOfficerRepository;
 import com.loanmanagementsystem.app.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -65,6 +67,7 @@ public class DocumentServiceImplementation implements DocumentService {
         return documentMapper.toResponse(document);
     }
 
+    @Transactional
     @Override
     public DocumentResponse verifyDocument(Long documentId, Long officerId) {
 
@@ -78,10 +81,13 @@ public class DocumentServiceImplementation implements DocumentService {
         LoanOfficer officer = loanOfficerRepository.findById(officerId)
                 .orElseThrow(() -> new RuntimeException("Loan officer not found"));
 
+        User borrower= document.getUser();
+        borrower.setIsVerified(true);
         document.setIsVerified(true);
         document.setVerifiedByOfficer(officer);
         document.setVerifiedAt(LocalDateTime.now());
 
+        userRepository.save(borrower);
         Document updated = documentRepository.save(document);
 
         return documentMapper.toResponse(updated);

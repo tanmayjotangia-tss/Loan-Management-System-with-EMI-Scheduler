@@ -28,7 +28,6 @@ public class PaymentController {
     private final PaymentService paymentService;
     private final LoanService loanService;
 
-
     @PostMapping("/emi")
     @PreAuthorize("hasRole('BORROWER')")
     public ResponseEntity<ApiResponse<PaymentResponse>> makeEmiPayment(
@@ -38,7 +37,9 @@ public class PaymentController {
         verifyLoanOwnership(request.getLoanId(), userDetails.getUserId());
 
         PaymentResponse response = paymentService.makeEmiPayment(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.created(response));
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success(201, "EMI payment completed successfully", response));
     }
 
     @PostMapping("/foreclosure")
@@ -50,9 +51,10 @@ public class PaymentController {
         verifyLoanOwnership(request.getLoanId(), userDetails.getUserId());
 
         PaymentResponse response = paymentService.makeForeclosurePayment(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.created(response));
-    }
 
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success(201, "Loan foreclosure payment completed successfully", response));
+    }
 
     @GetMapping("/loan/{loanId}")
     @PreAuthorize("hasAnyRole('LOAN_OFFICER', 'ADMIN', 'BORROWER')")
@@ -65,9 +67,11 @@ public class PaymentController {
         }
 
         List<PaymentResponse> responses = paymentService.getPaymentsByLoanId(loanId);
-        return ResponseEntity.ok(ApiResponse.success(responses));
-    }
 
+        return ResponseEntity.ok(
+                ApiResponse.success(200, "Payments fetched successfully for loan", responses)
+        );
+    }
 
     @GetMapping("/emi/{emiId}")
     @PreAuthorize("hasAnyRole('LOAN_OFFICER', 'ADMIN', 'BORROWER')")
@@ -81,7 +85,9 @@ public class PaymentController {
             verifyLoanOwnership(responses.get(0).getLoanId(), userDetails.getUserId());
         }
 
-        return ResponseEntity.ok(ApiResponse.success(responses));
+        return ResponseEntity.ok(
+                ApiResponse.success(200, "Payments fetched successfully for EMI", responses)
+        );
     }
 
     private void verifyLoanOwnership(Long loanId, Long authenticatedUserId) {
