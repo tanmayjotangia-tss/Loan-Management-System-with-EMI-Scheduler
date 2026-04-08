@@ -44,7 +44,6 @@ class EmiRepositoryTest {
         officer.setRole(Role.LOAN_OFFICER);
         officer.setIsActive(true);
         officer.setIsVerified(true);
-        officer.setEmployeeNumber("EMP1");
         officer.setOfficerType(OfficerType.COMMON);
         officer.setIsAvailable(true);
         em.persist(officer);
@@ -56,7 +55,6 @@ class EmiRepositoryTest {
                 .requestedTenureMonths(12)
                 .monthlyIncome(new BigDecimal("50000"))
                 .currentEmi(new BigDecimal("5000"))
-                .purpose("Test")
                 .status(LoanApplicationStatus.APPROVED)
                 .reviewedByOfficer(officer)
                 .suggestedStrategy(StrategyType.FLAT_RATE_LOAN)

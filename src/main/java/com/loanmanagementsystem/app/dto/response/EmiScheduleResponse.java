@@ -10,7 +10,6 @@ import java.util.List;
 @Builder
 public class EmiScheduleResponse {
 
-    private Long loanId;
     private Integer totalInstallments;
     private List<EmiResponse> schedule;
 }

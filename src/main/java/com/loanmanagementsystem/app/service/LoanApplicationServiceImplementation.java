@@ -2,14 +2,20 @@ package com.loanmanagementsystem.app.service;
 
 import com.loanmanagementsystem.app.dto.request.LoanApplicationRequest;
 import com.loanmanagementsystem.app.dto.request.LoanReviewRequest;
-import com.loanmanagementsystem.app.dto.response.LoanApplicationResponse;
+import com.loanmanagementsystem.app.dto.response.ApplyLoanResponse;
+import com.loanmanagementsystem.app.dto.response.LoanApplicationForReviewResponse;
+import com.loanmanagementsystem.app.dto.response.PendingLoanApplicationResponse;
+import com.loanmanagementsystem.app.dto.response.ReviewedLoanApplicationResponse;
 import com.loanmanagementsystem.app.entity.Borrower;
 import com.loanmanagementsystem.app.entity.LoanApplication;
 import com.loanmanagementsystem.app.entity.LoanOfficer;
 import com.loanmanagementsystem.app.entity.LoanProperties;
 import com.loanmanagementsystem.app.entity.enums.*;
 import com.loanmanagementsystem.app.exception.BadRequestException;
-import com.loanmanagementsystem.app.mapper.LoanApplicationMapper;
+import com.loanmanagementsystem.app.mapper.ApplyLoanMapper;
+import com.loanmanagementsystem.app.mapper.LoanApplicationForReviewMapper;
+import com.loanmanagementsystem.app.mapper.PendingLoanApplicationMapper;
+import com.loanmanagementsystem.app.mapper.ReviewedLoanApplicationMapper;
 import com.loanmanagementsystem.app.repository.*;
 import com.loanmanagementsystem.app.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
@@ -30,20 +36,23 @@ public class LoanApplicationServiceImplementation implements LoanApplicationServ
     private final BorrowerRepository borrowerRepository;
     private final LoanOfficerRepository loanOfficerRepository;
     private final LoanPropertiesRepository loanPropertiesRepository;
-    private final LoanApplicationMapper loanApplicationMapper;
+    private final ReviewedLoanApplicationMapper reviewedLoanApplicationMapper;
+    private final ApplyLoanMapper applyLoanMapper;
+    private final PendingLoanApplicationMapper pendingLoanApplicationMapper;
+    private final LoanApplicationForReviewMapper loanApplicationForReviewMapper;
     private final NotificationService notificationService;
     private final LoanRepository loanRepository;
 
 
     @Override
-    public LoanApplicationResponse applyForLoan(Long borrowerId, LoanApplicationRequest request) {
+    public ApplyLoanResponse applyForLoan(Long borrowerId, LoanApplicationRequest request) {
         Borrower borrower = borrowerRepository.findById(borrowerId)
                 .orElseThrow(() -> new BadRequestException("Borrower not found"));
 
         LoanProperties loanProperties =loanPropertiesRepository.findByLoanType(request.getLoanType())
                 .orElseThrow(() -> new RuntimeException("Loan properties not found"));
 
-        if(borrower.getIsVerified()){
+        if(!borrower.getIsVerified()){
             throw new RuntimeException("First Verify Your Documents");
         }
 
@@ -61,7 +70,7 @@ public class LoanApplicationServiceImplementation implements LoanApplicationServ
             throw new RuntimeException("Requested tenure must be between " + loanProperties.getMinTenure() + " and " + loanProperties.getMaxTenure() + " months");
         }
 
-        LoanApplication loanApplication = loanApplicationMapper.toEntity(request);
+        LoanApplication loanApplication = applyLoanMapper.toEntity(request);
         loanApplication.setBorrower(borrower);
 
         BigDecimal dti=calculateDti(request);
@@ -82,7 +91,7 @@ public class LoanApplicationServiceImplementation implements LoanApplicationServ
                     "Your loan application for " + request.getRequestedAmount() + " has been Rejected."
             );
             loanApplicationRepository.save(loanApplication);
-            return loanApplicationMapper.toResponse(loanApplication);
+            return applyLoanMapper.toResponse(loanApplication);
         }
 
         loanApplication.setSuggestedStrategy(strategyType);
@@ -97,7 +106,7 @@ public class LoanApplicationServiceImplementation implements LoanApplicationServ
                 "Your loan application for " + request.getRequestedAmount() + " has been successfully submitted and is under review."
         );
 
-        return loanApplicationMapper.toResponse(loanApplication);
+        return applyLoanMapper.toResponse(loanApplication);
     }
 
     private RiskCategory calculateRisk(BigDecimal dti, int creditScore) {
@@ -175,62 +184,62 @@ public class LoanApplicationServiceImplementation implements LoanApplicationServ
     }
 
     @Override
-    public LoanApplicationResponse getApplicationById(Long applicationId) {
+    public ReviewedLoanApplicationResponse getApplicationById(Long applicationId) {
         LoanApplication application = loanApplicationRepository.findById(applicationId)
                 .orElseThrow(() -> new RuntimeException("Loan application not found with id: " + applicationId));
-        return loanApplicationMapper.toResponse(application);
+        return reviewedLoanApplicationMapper.toResponse(application);
     }
 
     @Override
-    public List<LoanApplicationResponse> getCurrentUserApplications() {
+    public List<ReviewedLoanApplicationResponse> getCurrentUserApplications() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         CustomUserDetails user = (CustomUserDetails) auth.getPrincipal();
 
         return loanApplicationRepository.findAllByBorrowerId(user.getUserId())
                 .stream()
-                .map(loanApplicationMapper::toResponse)
+                .map(reviewedLoanApplicationMapper::toResponse)
                 .toList();
     }
 
     @Override
-    public List<LoanApplicationResponse> getApplicationsByBorrowerId(Long borrowerId) {
+    public List<ReviewedLoanApplicationResponse> getApplicationsByBorrowerId(Long borrowerId) {
         return loanApplicationRepository.findAllByBorrowerId(borrowerId)
                 .stream()
-                .map(loanApplicationMapper :: toResponse)
+                .map(reviewedLoanApplicationMapper:: toResponse)
                 .toList();
     }
 
     @Override
-    public List<LoanApplicationResponse> getAllPendingApplications() {
+    public List<PendingLoanApplicationResponse> getAllPendingApplications() {
         return loanApplicationRepository.findAllByStatus(LoanApplicationStatus.PENDING)
                 .stream()
-                .map(loanApplicationMapper :: toResponse)
+                .map(pendingLoanApplicationMapper:: toResponse)
                 .toList();
     }
 
     @Override
-    public List<LoanApplicationResponse> getPendingApplicationsByType(LoanType loanType) {
+    public List<PendingLoanApplicationResponse> getPendingApplicationsByType(LoanType loanType) {
         return loanApplicationRepository.findAllByStatusAndLoanType(LoanApplicationStatus.PENDING,loanType)
                 .stream()
-                .map(loanApplicationMapper :: toResponse)
+                .map(pendingLoanApplicationMapper:: toResponse)
                 .toList();
     }
 
     @Override
-    public LoanApplicationResponse getApplicationForReview(Long applicationId) {
+    public LoanApplicationForReviewResponse getApplicationForReview(Long applicationId) {
         LoanApplication loanApplication = loanApplicationRepository.findByIdAndStatus(applicationId,LoanApplicationStatus.PENDING)
                 .orElseThrow(() -> new RuntimeException("Loan application not found with id: " + applicationId));
 
-        return loanApplicationMapper.toResponse(loanApplication);
+        return loanApplicationForReviewMapper.toResponse(loanApplication);
     }
 
     @Override
-    public LoanApplicationResponse suggestStrategy(Long applicationId) {
+    public ReviewedLoanApplicationResponse suggestStrategy(Long applicationId) {
         return null;
     }
 
     @Override
-    public LoanApplicationResponse reviewApplication(Long applicationId, Long officerId, LoanReviewRequest request) {
+    public ReviewedLoanApplicationResponse reviewApplication(Long applicationId, Long officerId, LoanReviewRequest request) {
         LoanApplication loanApplication = loanApplicationRepository.findByIdAndStatus(applicationId,LoanApplicationStatus.PENDING)
                 .orElseThrow(() -> new RuntimeException("Loan application not found with id: " + applicationId));
 
@@ -268,6 +277,6 @@ public class LoanApplicationServiceImplementation implements LoanApplicationServ
                 "Your loan application status has been updated to: " + request.getStatus() + "."
         );
 
-        return loanApplicationMapper.toResponse(loanApplication);
+        return reviewedLoanApplicationMapper.toResponse(loanApplication);
     }
 }

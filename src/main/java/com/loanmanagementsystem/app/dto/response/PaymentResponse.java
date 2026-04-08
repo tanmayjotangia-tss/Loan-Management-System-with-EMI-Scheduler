@@ -12,9 +12,8 @@ import java.time.LocalDateTime;
 @Builder
 public class PaymentResponse {
 
-    private Long id;
     private Long loanId;
-    private Long emiId;
+    private Long installmentNumber;
     private BigDecimal amountPaid;
     private PaymentMode paymentMode;
     private LocalDateTime paidAt;

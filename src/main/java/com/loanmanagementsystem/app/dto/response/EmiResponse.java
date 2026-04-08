@@ -12,14 +12,12 @@ import java.time.LocalDate;
 @Builder
 public class EmiResponse {
 
-    private Long id;
     private Long loanId;
     private Integer installmentNumber;
     private LocalDate dueDate;
     private BigDecimal emiAmount;
     private BigDecimal principalComponent;
     private BigDecimal interestComponent;
-    private BigDecimal remainingBalance;
     private EmiStatus status;
     private LocalDate paymentDate;
     private BigDecimal paidAmount;
