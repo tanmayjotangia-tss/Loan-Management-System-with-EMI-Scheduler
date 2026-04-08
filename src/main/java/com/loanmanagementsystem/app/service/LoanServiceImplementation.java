@@ -1,18 +1,12 @@
 package com.loanmanagementsystem.app.service;
 
 import com.loanmanagementsystem.app.dto.response.LoanResponse;
-import com.loanmanagementsystem.app.entity.Emi;
-import com.loanmanagementsystem.app.entity.Loan;
-import com.loanmanagementsystem.app.entity.LoanApplication;
-import com.loanmanagementsystem.app.entity.LoanProperties;
+import com.loanmanagementsystem.app.entity.*;
 import com.loanmanagementsystem.app.entity.enums.*;
 import com.loanmanagementsystem.app.exception.BadRequestException;
 import com.loanmanagementsystem.app.factory.LoanStrategyFactory;
 import com.loanmanagementsystem.app.mapper.LoanMapper;
-import com.loanmanagementsystem.app.repository.EmiRepository;
-import com.loanmanagementsystem.app.repository.LoanApplicationRepository;
-import com.loanmanagementsystem.app.repository.LoanPropertiesRepository;
-import com.loanmanagementsystem.app.repository.LoanRepository;
+import com.loanmanagementsystem.app.repository.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -33,12 +27,27 @@ public class LoanServiceImplementation implements LoanService {
     private final EmiRepository emiRepository;
     private final LoanMapper loanMapper;
     private final LoanStrategyFactory strategyFactory;
+    private final CreditScoreService creditScoreService;
+    private final BorrowerRepository borrowerRepository;
 
     @Transactional
     @Override
     public LoanResponse createLoanFromApplication(Long applicationId, StrategyType type) {
         LoanApplication loanApplication = loanApplicationRepository.findById(applicationId)
                 .orElseThrow(() -> new BadRequestException("Loan application not found with id: " + applicationId));
+
+//        Borrower borrower = borrowerRepository.findById(loanApplication.getBorrower().getId())
+//                .orElseThrow(() -> new BadRequestException("Borrower not found"));
+
+        Borrower borrower=loanApplication.getBorrower();
+
+        if(borrower==null){
+            throw new BadRequestException("Borrower not found");
+        }
+
+        int newCreditScore=creditScoreService.updateOnLoanCreation(borrower.getCreditScore(),loanApplication.getRequestedAmount());
+        borrower.setCreditScore(newCreditScore);
+        borrowerRepository.save(borrower);
 
         if (loanApplication.getStatus() != LoanApplicationStatus.APPROVED) {
             throw new RuntimeException("Loan application must be APPROVED to create a loan. Current status: " + loanApplication.getStatus());
@@ -84,8 +93,6 @@ public class LoanServiceImplementation implements LoanService {
                 .status(LoanStatus.ACTIVE)
                 .gracePeriodDays(loanProperties.getGracePeriodDays())
                 .build();
-
-//        loanRepository.save(loan);
 
         List<Emi> emiList=strategyFactory.getStrategy(type).generateSchedule(loan);
         if (emiList.isEmpty()) {

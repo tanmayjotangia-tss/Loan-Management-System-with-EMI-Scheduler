@@ -2,8 +2,7 @@ package com.loanmanagementsystem.app.controller;
 
 import com.loanmanagementsystem.app.dto.request.LoanApplicationRequest;
 import com.loanmanagementsystem.app.dto.request.LoanReviewRequest;
-import com.loanmanagementsystem.app.dto.response.ApiResponse;
-import com.loanmanagementsystem.app.dto.response.LoanApplicationResponse;
+import com.loanmanagementsystem.app.dto.response.*;
 import com.loanmanagementsystem.app.entity.enums.LoanType;
 import com.loanmanagementsystem.app.security.CustomUserDetails;
 import com.loanmanagementsystem.app.service.LoanApplicationService;
@@ -29,11 +28,11 @@ public class LoanApplicationController {
 
     @PostMapping("/apply")
     @PreAuthorize("hasRole('BORROWER')")
-    public ResponseEntity<ApiResponse<LoanApplicationResponse>> applyForLoan(
+    public ResponseEntity<ApiResponse<ApplyLoanResponse>> applyForLoan(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @Valid @RequestBody LoanApplicationRequest request) {
 
-        LoanApplicationResponse response =
+        ApplyLoanResponse response =
                 loanApplicationService.applyForLoan(userDetails.getUserId(), request);
 
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -42,9 +41,9 @@ public class LoanApplicationController {
 
     @GetMapping("/my-applications")
     @PreAuthorize("hasRole('BORROWER')")
-    public ResponseEntity<ApiResponse<List<LoanApplicationResponse>>> getMyApplications() {
+    public ResponseEntity<ApiResponse<List<ReviewedLoanApplicationResponse>>> getMyApplications() {
 
-        List<LoanApplicationResponse> responses =
+        List<ReviewedLoanApplicationResponse> responses =
                 loanApplicationService.getCurrentUserApplications();
 
         return ResponseEntity.ok(
@@ -54,11 +53,11 @@ public class LoanApplicationController {
 
     @GetMapping("/{applicationId}")
     @PreAuthorize("hasAnyRole('BORROWER', 'LOAN_OFFICER', 'ADMIN')")
-    public ResponseEntity<ApiResponse<LoanApplicationResponse>> getApplicationById(
+    public ResponseEntity<ApiResponse<ReviewedLoanApplicationResponse>> getApplicationById(
             @PathVariable Long applicationId,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
 
-        LoanApplicationResponse response =
+        ReviewedLoanApplicationResponse response =
                 loanApplicationService.getApplicationById(applicationId);
 
         if (userDetails.getRole().name().equals("BORROWER")
@@ -73,10 +72,10 @@ public class LoanApplicationController {
 
     @GetMapping("/borrower/{borrowerId}")
     @PreAuthorize("hasAnyRole('LOAN_OFFICER', 'ADMIN')")
-    public ResponseEntity<ApiResponse<List<LoanApplicationResponse>>> getApplicationsByBorrowerId(
+    public ResponseEntity<ApiResponse<List<ReviewedLoanApplicationResponse>>> getApplicationsByBorrowerId(
             @PathVariable Long borrowerId) {
 
-        List<LoanApplicationResponse> responses =
+        List<ReviewedLoanApplicationResponse> responses =
                 loanApplicationService.getApplicationsByBorrowerId(borrowerId);
 
         return ResponseEntity.ok(
@@ -86,9 +85,9 @@ public class LoanApplicationController {
 
     @GetMapping("/pending")
     @PreAuthorize("hasAnyRole('LOAN_OFFICER', 'ADMIN')")
-    public ResponseEntity<ApiResponse<List<LoanApplicationResponse>>> getAllPendingApplications() {
+    public ResponseEntity<ApiResponse<List<PendingLoanApplicationResponse>>> getAllPendingApplications() {
 
-        List<LoanApplicationResponse> responses =
+        List<PendingLoanApplicationResponse> responses =
                 loanApplicationService.getAllPendingApplications();
 
         return ResponseEntity.ok(
@@ -98,10 +97,10 @@ public class LoanApplicationController {
 
     @GetMapping("/pending/type/{loanType}")
     @PreAuthorize("hasAnyRole('LOAN_OFFICER', 'ADMIN')")
-    public ResponseEntity<ApiResponse<List<LoanApplicationResponse>>> getPendingApplicationsByType(
+    public ResponseEntity<ApiResponse<List<PendingLoanApplicationResponse>>> getPendingApplicationsByType(
             @PathVariable LoanType loanType) {
 
-        List<LoanApplicationResponse> responses =
+        List<PendingLoanApplicationResponse> responses =
                 loanApplicationService.getPendingApplicationsByType(loanType);
 
         return ResponseEntity.ok(
@@ -111,10 +110,10 @@ public class LoanApplicationController {
 
     @GetMapping("/{applicationId}/review")
     @PreAuthorize("hasAnyRole('LOAN_OFFICER', 'ADMIN')")
-    public ResponseEntity<ApiResponse<LoanApplicationResponse>> getApplicationForReview(
+    public ResponseEntity<ApiResponse<LoanApplicationForReviewResponse>> getApplicationForReview(
             @PathVariable Long applicationId) {
 
-        LoanApplicationResponse response =
+        LoanApplicationForReviewResponse response =
                 loanApplicationService.getApplicationForReview(applicationId);
 
         return ResponseEntity.ok(
@@ -124,12 +123,12 @@ public class LoanApplicationController {
 
     @PostMapping("/{applicationId}/review")
     @PreAuthorize("hasRole('LOAN_OFFICER')")
-    public ResponseEntity<ApiResponse<LoanApplicationResponse>> reviewApplication(
+    public ResponseEntity<ApiResponse<ReviewedLoanApplicationResponse>> reviewApplication(
             @PathVariable Long applicationId,
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @Valid @RequestBody LoanReviewRequest request) {
 
-        LoanApplicationResponse response =
+        ReviewedLoanApplicationResponse response =
                 loanApplicationService.reviewApplication(
                         applicationId,
                         userDetails.getUserId(),

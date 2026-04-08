@@ -17,7 +17,7 @@ public class LoanResponse {
 
     private Long id;
     private LoanType loanType;
-    private Long loanApplicationId; //----
+    private Long loanApplicationId;
     private Long borrowerId;
     private String borrowerName;
     private String approvedByOfficerName;
@@ -32,5 +32,4 @@ public class LoanResponse {
     private LoanStatus status;
     private Integer gracePeriodDays;
     private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
 }

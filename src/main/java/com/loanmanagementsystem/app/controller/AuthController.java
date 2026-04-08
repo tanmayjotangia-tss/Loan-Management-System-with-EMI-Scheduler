@@ -30,20 +30,20 @@ public class AuthController {
     public ResponseEntity<ApiResponse<AuthResponse>> registerBorrower(
             @Valid @RequestBody RegisterUserRequest request) {
 
-        AuthResponse response = authService.registerBorrower(request);
+        authService.registerBorrower(request);
 
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success(201, "Borrower registered successfully", response));
+                .body(ApiResponse.success(201, "Borrower registered successfully"));
     }
 
     @PostMapping("/register/officer")
     public ResponseEntity<ApiResponse<AuthResponse>> registerLoanOfficer(
             @Valid @RequestBody RegisterOfficerRequest request) {
 
-        AuthResponse response = authService.registerLoanOfficer(request);
+        authService.registerLoanOfficer(request);
 
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success(201, "Loan officer registered successfully", response));
+                .body(ApiResponse.success(201, "Loan officer registered successfully"));
     }
 
     @PostMapping("/login")
@@ -78,7 +78,7 @@ public class AuthController {
         authService.updateCredentials(userDetails.getUserId(), request);
 
         return ResponseEntity.ok(
-                ApiResponse.success(200, "Credentials updated successfully", null)
+                ApiResponse.success(200, "Credentials updated successfully")
         );
     }
 
@@ -90,7 +90,7 @@ public class AuthController {
         authService.deactivateAccount(userDetails.getUserId());
 
         return ResponseEntity.ok(
-                ApiResponse.success(200, "Account deactivated successfully", null)
+                ApiResponse.success(200, "Account deactivated successfully")
         );
     }
 }

@@ -29,6 +29,9 @@ public class Payment {
     @JoinColumn(name = "emi_id")
     private Emi emi; // nullable for foreclosure payments
 
+    @Column(name="installment_number")
+    private Long installmentNumber;
+
     @Column(name = "amount_paid", nullable = false, precision = 15, scale = 2)
     private BigDecimal amountPaid;
 

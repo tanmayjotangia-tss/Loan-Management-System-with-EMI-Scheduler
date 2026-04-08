@@ -1,6 +1,7 @@
 package com.loanmanagementsystem.app.service;
 
 import com.loanmanagementsystem.app.dto.request.PaymentRequest;
+import com.loanmanagementsystem.app.dto.response.EmiResponse;
 import com.loanmanagementsystem.app.dto.response.PaymentResponse;
 import com.loanmanagementsystem.app.entity.*;
 import com.loanmanagementsystem.app.entity.enums.EmiStatus;
@@ -39,12 +40,14 @@ public class PaymentServiceImplementation implements PaymentService {
     @Transactional
     public PaymentResponse makeEmiPayment(PaymentRequest request) {
         Loan loan = loanRepository.findById(request.getLoanId())
-                .orElseThrow(() -> new BadRequestException("Loan not found with id: " + request.getLoanId()));
+                .orElseThrow(() -> new BadRequestException(
+                        "Loan not found with id: " + request.getLoanId()));
 
         Borrower borrower = loan.getBorrower();
 
-        Emi emi = emiRepository.findById(request.getEmiId())
-                .orElseThrow(() -> new RuntimeException("EMI not found with id: " + request.getEmiId()));
+        Emi emi = emiRepository.findByLoanIdAndInstallmentNumber(request.getLoanId(), request.getInstallmentNumber())
+                .orElseThrow(() -> new BadRequestException(
+                        "EMI not found for loanId: " + request.getLoanId() + " and installmentNumber: " + request.getInstallmentNumber()));
 
         if (emi.getStatus() == EmiStatus.UPCOMING) {
             throw new RuntimeException("This EMI is not payable yet");
@@ -54,8 +57,8 @@ public class PaymentServiceImplementation implements PaymentService {
             throw new RuntimeException("Cannot make payment on a closed loan");
         }
 
-        if (request.getEmiId() == null) {
-            throw new RuntimeException("EMI ID is required for EMI payment");
+        if (request.getInstallmentNumber() == null) {
+            throw new RuntimeException("Installment Number is required for EMI payment");
         }
 
         if (emi.getStatus() == EmiStatus.PAID) {
@@ -75,6 +78,7 @@ public class PaymentServiceImplementation implements PaymentService {
 
         Payment payment = paymentMapper.toEntity(request);
         payment.setLoan(loan);
+        payment.setInstallmentNumber(request.getInstallmentNumber());
         payment.setEmi(emi);
         payment.setPaymentMode(request.getPaymentMode());
         payment.setAmountPaid(request.getAmountPaid());
@@ -132,10 +136,11 @@ public class PaymentServiceImplementation implements PaymentService {
         }
 
         BigDecimal chargeOnForeclosure =
-                loan.getTotalPayableAmount()
+                getForeclosureAmount(loan.getId())
                         .multiply(loanProperties.getForeclosurePenaltyPercent())
                         .divide(BigDecimal.valueOf(100));
-        BigDecimal totalPayableAmount = loan.getTotalPayableAmount().add(penaltyService.getTotalPendingPenalties(loan.getId())).add(chargeOnForeclosure);
+
+        BigDecimal totalPayableAmount = getForeclosureAmount(loan.getId()).add(penaltyService.getTotalPendingPenalties(loan.getId())).add(chargeOnForeclosure);
         BigDecimal totalAvailableAmount = borrower.getSurplusAmount().add(request.getAmountPaid());
 
         if (totalAvailableAmount.compareTo(totalPayableAmount) < 0) {
@@ -167,6 +172,21 @@ public class PaymentServiceImplementation implements PaymentService {
         emiService.markEmisPaid(loan.getId());
 
         return paymentMapper.toResponse(payment);
+    }
+
+    private BigDecimal getForeclosureAmount(Long loanId){
+        List<EmiResponse> unpaidEmis=emiService.getUnpaidEmis(loanId);
+
+        if(unpaidEmis==null){
+            return BigDecimal.ZERO;
+        }
+
+        BigDecimal totalForeclosure=BigDecimal.ZERO;
+
+        for(EmiResponse emiResponse: unpaidEmis){
+            totalForeclosure=totalForeclosure.add(emiResponse.getPrincipalComponent());
+        }
+        return totalForeclosure;
     }
 
 

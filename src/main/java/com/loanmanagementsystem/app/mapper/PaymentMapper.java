@@ -15,6 +15,6 @@ public interface PaymentMapper {
     Payment toEntity(PaymentRequest request);
 
     @Mapping(target = "loanId", source = "loan.id")
-    @Mapping(target = "emiId", source = "emi.id")
+    @Mapping(target = "installmentNumber", source = "emi.installmentNumber")
     PaymentResponse toResponse(Payment payment);
 }

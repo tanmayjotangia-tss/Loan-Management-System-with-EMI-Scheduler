@@ -1,13 +1,18 @@
 package com.loanmanagementsystem.app.mapper;
 
 import com.loanmanagementsystem.app.dto.request.LoanApplicationRequest;
-import com.loanmanagementsystem.app.dto.response.LoanApplicationResponse;
+import com.loanmanagementsystem.app.dto.response.ApplyLoanResponse;
 import com.loanmanagementsystem.app.entity.LoanApplication;
-import org.mapstruct.*;
+import com.loanmanagementsystem.app.entity.enums.LoanApplicationStatus;
+import com.loanmanagementsystem.app.entity.enums.LoanType;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Mapper(componentModel = "spring")
-public interface LoanApplicationMapper {
-
+public interface ApplyLoanMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "borrower", ignore = true)
     @Mapping(target = "calculatedDti", ignore = true)
@@ -21,9 +26,5 @@ public interface LoanApplicationMapper {
     @Mapping(target = "reviewedAt", ignore = true)
     @Mapping(target = "loan", ignore = true)
     LoanApplication toEntity(LoanApplicationRequest request);
-
-    @Mapping(target = "borrowerId", source = "borrower.id")
-    @Mapping(target = "borrowerName", source = "borrower.name")
-    @Mapping(target = "reviewedByOfficerName", source = "reviewedByOfficer.name")
-    LoanApplicationResponse toResponse(LoanApplication loanApplication);
+    ApplyLoanResponse toResponse(LoanApplication loanApplication);
 }

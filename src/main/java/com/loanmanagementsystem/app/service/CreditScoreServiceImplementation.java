@@ -106,6 +106,21 @@ public class CreditScoreServiceImplementation implements CreditScoreService {
         return limitTheVal(currentScore + finalChange);
     }
 
+    public int updateOnLoanCreation(int currentScore, BigDecimal loanAmount) {
+        currentScore = initializer(currentScore);
+
+        int change;
+
+        double loan = loanAmount.doubleValue();
+
+        if (loan < 50000) change = -2;
+        else if (loan < 200000) change = -5;
+        else if (loan < 500000) change = -8;
+        else change = -12;
+
+        return limitTheVal(currentScore + change);
+    }
+
 
     private int rewardCalculator(int currentScore) {
         if (currentScore < 600) return 8;

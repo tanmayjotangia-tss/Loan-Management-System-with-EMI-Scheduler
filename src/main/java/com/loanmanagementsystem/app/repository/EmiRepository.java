@@ -64,4 +64,12 @@ public interface EmiRepository extends JpaRepository<Emi, Long> {
     boolean existsByLoanIdAndStatusNot(Long loanId, EmiStatus emiStatus);
 
     List<Emi> findByStatusAndDueDateBefore(EmiStatus status, LocalDate date);
+
+    @Query("""
+    SELECT e FROM Emi e
+    WHERE e.loan.id = :loanId
+    AND e.installmentNumber = :installmentNumber
+""")
+    Optional<Emi> findByLoanIdAndInstallmentNumber(@Param("loanId") Long loanId,
+                                                   @Param("installmentNumber") Long installmentNumber);
 }
