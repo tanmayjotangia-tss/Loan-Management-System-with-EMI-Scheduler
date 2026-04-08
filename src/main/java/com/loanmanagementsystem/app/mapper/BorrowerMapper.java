@@ -1,6 +1,6 @@
 package com.loanmanagementsystem.app.mapper;
 
-import com.loanmanagementsystem.app.dto.request.RegisterUserRequest;
+import com.loanmanagementsystem.app.dto.request.RegisterBorrowerRequest;
 import com.loanmanagementsystem.app.dto.response.BorrowerResponse;
 import com.loanmanagementsystem.app.entity.Borrower;
 import org.mapstruct.*;
@@ -20,7 +20,7 @@ public interface BorrowerMapper {
     @Mapping(target = "notifications", ignore = true)
     @Mapping(target = "loanApplications", ignore = true)
     @Mapping(target = "loans", ignore = true)
-    Borrower toEntity(RegisterUserRequest request);
+    Borrower toEntity(RegisterBorrowerRequest request);
 
     BorrowerResponse toResponse(Borrower borrower);
 

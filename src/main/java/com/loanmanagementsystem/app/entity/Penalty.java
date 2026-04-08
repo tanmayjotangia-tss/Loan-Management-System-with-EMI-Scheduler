@@ -2,6 +2,8 @@ package com.loanmanagementsystem.app.entity;
 
 import com.loanmanagementsystem.app.entity.enums.PenaltyReason;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Digits;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -29,6 +31,8 @@ public class Penalty {
     @JoinColumn(name = "loan_id", nullable = false)
     private Loan loan;
 
+    @DecimalMin(value = "0.0", inclusive = false, message = "Penalty amount must be greater than 0")
+    @Digits(integer = 13, fraction = 2)
     @Column(nullable = false, precision = 15, scale = 2)
     private BigDecimal amount;
 

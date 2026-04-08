@@ -2,14 +2,14 @@ package com.loanmanagementsystem.app.service;
 
 import com.loanmanagementsystem.app.dto.request.LoginRequest;
 import com.loanmanagementsystem.app.dto.request.RegisterOfficerRequest;
-import com.loanmanagementsystem.app.dto.request.RegisterUserRequest;
+import com.loanmanagementsystem.app.dto.request.RegisterBorrowerRequest;
 import com.loanmanagementsystem.app.dto.request.UpdateCredentialsRequest;
 import com.loanmanagementsystem.app.dto.response.AuthResponse;
 import com.loanmanagementsystem.app.dto.response.UserResponse;
 
 public interface AuthService {
 
-    AuthResponse registerBorrower(RegisterUserRequest request);
+    AuthResponse registerBorrower(RegisterBorrowerRequest request);
 
     AuthResponse registerLoanOfficer(RegisterOfficerRequest request);
 

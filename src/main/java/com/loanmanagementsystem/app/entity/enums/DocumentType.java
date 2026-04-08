@@ -1,7 +1,10 @@
 package com.loanmanagementsystem.app.entity.enums;
 
 public enum DocumentType {
-    AADHAAR,
-    PAN,
-    SALARY_SLIP
+    IDENTITY_PROOF,
+    ADDRESS_PROOF,
+    INCOME_PROOF,
+    EMPLOYMENT_PROOF,
+    BUSINESS_PROOF,
+    BANKING_PROOF
 }

@@ -2,6 +2,9 @@ package com.loanmanagementsystem.app.entity;
 
 import com.loanmanagementsystem.app.entity.enums.PaymentMode;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Digits;
+import jakarta.validation.constraints.Positive;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -30,8 +33,11 @@ public class Payment {
     private Emi emi; // nullable for foreclosure payments
 
     @Column(name="installment_number")
+    @Positive(message = "Installment number must be positive")
     private Long installmentNumber;
 
+    @DecimalMin(value = "0.0", inclusive = false, message = "Amount must be greater than 0")
+    @Digits(integer = 13, fraction = 2)
     @Column(name = "amount_paid", nullable = false, precision = 15, scale = 2)
     private BigDecimal amountPaid;
 

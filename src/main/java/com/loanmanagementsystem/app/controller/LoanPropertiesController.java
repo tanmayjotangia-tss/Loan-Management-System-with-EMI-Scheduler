@@ -4,6 +4,7 @@ import com.loanmanagementsystem.app.dto.response.ApiResponse;
 import com.loanmanagementsystem.app.entity.LoanProperties;
 import com.loanmanagementsystem.app.entity.enums.LoanType;
 import com.loanmanagementsystem.app.service.LoanPropertiesService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -34,7 +35,7 @@ public class LoanPropertiesController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<LoanProperties>> updateLoanProperties(
             @PathVariable LoanType loanType,
-            @RequestBody LoanProperties updatedProperties) {
+            @Valid @RequestBody LoanProperties updatedProperties) {
 
         LoanProperties response =
                 loanPropertiesService.updateLoanProperties(loanType, updatedProperties);

@@ -2,9 +2,8 @@ package com.loanmanagementsystem.app.dto.request;
 
 import com.loanmanagementsystem.app.entity.enums.LoanApplicationStatus;
 import com.loanmanagementsystem.app.entity.enums.StrategyType;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.*;
 import lombok.*;
-import java.math.BigDecimal;
 
 @Data
 @NoArgsConstructor
@@ -17,6 +16,6 @@ public class LoanReviewRequest {
 
     private StrategyType finalStrategy;
 
+    @Size(max = 500, message = "Officer comment cannot exceed 500 characters")
     private String officerComment;
-
 }
