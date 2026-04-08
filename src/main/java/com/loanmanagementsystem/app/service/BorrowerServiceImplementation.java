@@ -51,9 +51,6 @@ public class BorrowerServiceImplementation implements BorrowerService {
         if(request.getCurrentEmiAmount() != null){
             borrower.setCurrentEmiAmount(request.getCurrentEmiAmount());
         }
-        if(request.getCreditScore() != null){
-            borrower.setCreditScore(request.getCreditScore());
-        }
         if(request.getBankAccountNumber() != null){
             borrower.setBankAccountNumber(request.getBankAccountNumber());
         }

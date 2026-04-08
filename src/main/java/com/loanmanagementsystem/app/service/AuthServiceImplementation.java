@@ -2,7 +2,7 @@ package com.loanmanagementsystem.app.service;
 
 import com.loanmanagementsystem.app.dto.request.LoginRequest;
 import com.loanmanagementsystem.app.dto.request.RegisterOfficerRequest;
-import com.loanmanagementsystem.app.dto.request.RegisterUserRequest;
+import com.loanmanagementsystem.app.dto.request.RegisterBorrowerRequest;
 import com.loanmanagementsystem.app.dto.request.UpdateCredentialsRequest;
 import com.loanmanagementsystem.app.dto.response.AuthResponse;
 import com.loanmanagementsystem.app.dto.response.UserResponse;
@@ -42,7 +42,7 @@ public class AuthServiceImplementation implements AuthService {
 
     @Override
     @Transactional
-    public AuthResponse registerBorrower(RegisterUserRequest request) {
+    public AuthResponse registerBorrower(RegisterBorrowerRequest request) {
 
         Optional<User> existingUser = userRepository.findByEmail(request.getEmail());
         if (existingUser.isPresent()) {

@@ -15,8 +15,8 @@ public class LoanApplicationRequest {
     @NotNull(message = "Loan type is required")
     private LoanType loanType;
 
-    @NotNull(message = "Requested amount is required")
-    @DecimalMin(value = "1000.00", message = "Minimum loan amount is 1000")
+    @NotNull(message = "Amount is required")
+    @Digits(integer = 13, fraction = 2)
     private BigDecimal requestedAmount;
 
     @NotNull(message = "Requested tenure is required")
@@ -26,8 +26,10 @@ public class LoanApplicationRequest {
 
     @NotNull(message = "Monthly income is required")
     @DecimalMin(value = "0.0", inclusive = false, message = "Monthly income must be positive")
+    @Digits(integer = 13, fraction = 2)
     private BigDecimal monthlyIncome;
 
     @DecimalMin(value = "0.0", message = "Current EMI cannot be negative")
+    @Digits(integer = 13, fraction = 2)
     private BigDecimal currentEmi;
 }

@@ -2,7 +2,7 @@ package com.loanmanagementsystem.app.controller;
 
 import com.loanmanagementsystem.app.dto.request.LoginRequest;
 import com.loanmanagementsystem.app.dto.request.RegisterOfficerRequest;
-import com.loanmanagementsystem.app.dto.request.RegisterUserRequest;
+import com.loanmanagementsystem.app.dto.request.RegisterBorrowerRequest;
 import com.loanmanagementsystem.app.dto.request.UpdateCredentialsRequest;
 import com.loanmanagementsystem.app.dto.response.ApiResponse;
 import com.loanmanagementsystem.app.dto.response.AuthResponse;
@@ -28,7 +28,7 @@ public class AuthController {
 
     @PostMapping("/register/borrower")
     public ResponseEntity<ApiResponse<AuthResponse>> registerBorrower(
-            @Valid @RequestBody RegisterUserRequest request) {
+            @Valid @RequestBody RegisterBorrowerRequest request) {
 
         authService.registerBorrower(request);
 
