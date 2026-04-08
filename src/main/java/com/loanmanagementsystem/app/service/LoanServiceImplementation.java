@@ -3,6 +3,7 @@ package com.loanmanagementsystem.app.service;
 import com.loanmanagementsystem.app.dto.response.LoanResponse;
 import com.loanmanagementsystem.app.entity.*;
 import com.loanmanagementsystem.app.entity.enums.*;
+import com.loanmanagementsystem.app.exception.AlreadyExistsException;
 import com.loanmanagementsystem.app.exception.BadRequestException;
 import com.loanmanagementsystem.app.factory.LoanStrategyFactory;
 import com.loanmanagementsystem.app.mapper.LoanMapper;
@@ -51,19 +52,19 @@ public class LoanServiceImplementation implements LoanService {
         borrowerRepository.save(borrower);
 
         if (loanApplication.getStatus() != LoanApplicationStatus.APPROVED) {
-            throw new RuntimeException("Loan application must be APPROVED to create a loan. Current status: " + loanApplication.getStatus());
+            throw new BadRequestException("Loan application must be APPROVED to create a loan. Current status: " + loanApplication.getStatus());
         }
 
         if (loanRepository.findByLoanApplicationId(applicationId).isPresent()) {
-            throw new RuntimeException("A loan already exists for application id: " + applicationId);
+            throw new AlreadyExistsException("Loan Application ", applicationId);
         }
 
         if(loanRepository.findNumberOfActiveLoansByBorrowerId(loanApplication.getBorrower().getId())>=3){
-            throw new RuntimeException("User already have 3 active loans.");
+            throw new BadRequestException("User already have 3 active loans.");
         }
 
         LoanProperties loanProperties = loanPropertiesRepository.findByLoanType(loanApplication.getLoanType())
-                .orElseThrow(() -> new RuntimeException("Loan properties not found for type: " + loanApplication.getLoanType()));
+                .orElseThrow(() -> new BadRequestException("Loan properties not found for type: " + loanApplication.getLoanType()));
 
         BigDecimal interestRate = loanProperties.getInterestRate();
         BigDecimal principalAmount = loanApplication.getRequestedAmount();
@@ -73,7 +74,7 @@ public class LoanServiceImplementation implements LoanService {
             type=loanApplication.getSuggestedStrategy();
         }
         if (type == null) {
-            throw new RuntimeException("Strategy type cannot be null");
+            throw new BadRequestException("Strategy type cannot be null");
         }
         loanApplication.setFinalStrategy(type);
 
@@ -97,7 +98,7 @@ public class LoanServiceImplementation implements LoanService {
 
         List<Emi> emiList=strategyFactory.getStrategy(type).generateSchedule(loan);
         if (emiList.isEmpty()) {
-            throw new RuntimeException("EMI schedule generation failed");
+            throw new BadRequestException("EMI schedule generation failed");
         }
         loan.setEmiAmount(emiList.get(0).getEmiAmount());
         BigDecimal totalPayableAmount=BigDecimal.ZERO;
@@ -129,7 +130,7 @@ public class LoanServiceImplementation implements LoanService {
     @Override
     public LoanResponse getLoanById(Long loanId) {
         Loan loan = loanRepository.findById(loanId)
-                .orElseThrow(() -> new RuntimeException("Loan not found with id: " + loanId));
+                .orElseThrow(() -> new BadRequestException("Loan not found with id: " + loanId));
         return loanMapper.toResponse(loan);
     }
 
@@ -161,17 +162,17 @@ public class LoanServiceImplementation implements LoanService {
     @Transactional
     public LoanResponse closeLoan(Long loanId) {
         Loan loan = loanRepository.findById(loanId)
-                .orElseThrow(() -> new RuntimeException("Loan not found with id: " + loanId));
+                .orElseThrow(() -> new BadRequestException("Loan not found with id: " + loanId));
 
         if (loan.getStatus() == LoanStatus.CLOSED) {
-            throw new RuntimeException("Loan is already closed");
+            throw new BadRequestException("Loan is already closed");
         }
 
         boolean hasUnpaidEmis = emiRepository
                 .existsByLoanIdAndStatusNot(loanId, EmiStatus.PAID);
 
         if (hasUnpaidEmis) {
-            throw new RuntimeException("Cannot close loan. All EMIs must be paid.");
+            throw new BadRequestException("Cannot close loan. All EMIs must be paid.");
         }
 
         loan.setStatus(LoanStatus.CLOSED);

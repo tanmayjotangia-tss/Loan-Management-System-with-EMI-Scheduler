@@ -5,6 +5,7 @@ import com.loanmanagementsystem.app.entity.Notification;
 import com.loanmanagementsystem.app.entity.User;
 import com.loanmanagementsystem.app.entity.enums.NotificationStatus;
 import com.loanmanagementsystem.app.entity.enums.NotificationType;
+import com.loanmanagementsystem.app.exception.BadRequestException;
 import com.loanmanagementsystem.app.mapper.NotificationMapper;
 import com.loanmanagementsystem.app.repository.NotificationRepository;
 import com.loanmanagementsystem.app.repository.UserRepository;
@@ -39,7 +40,7 @@ public class NotificationServiceImplementation implements NotificationService {
     @Override
     public void sendNotification(Long userId, NotificationType type, String subject, String message) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+                .orElseThrow(() -> new BadRequestException("User not found with id: " + userId));
 
         Notification notification = Notification.builder()
                 .user(user)
@@ -80,7 +81,7 @@ public class NotificationServiceImplementation implements NotificationService {
     @Override
     public List<NotificationResponse> getNotificationsByUserId(Long userId) {
         if (!userRepository.existsById(userId)) {
-            throw new RuntimeException("User not found with id: " + userId);
+            throw new BadRequestException("User not found with id: " + userId);
         }
 
         return notificationRepository.findAllByUserIdOrderBySentAtDesc(userId)
@@ -92,11 +93,11 @@ public class NotificationServiceImplementation implements NotificationService {
     @Override
     public NotificationResponse getNotificationById(Long id, Long userId) {
         if (!userRepository.existsById(userId)) {
-            throw new RuntimeException("User not found with id: " + userId);
+            throw new BadRequestException("User not found with id: " + userId);
         }
 
         Notification notification = notificationRepository.findByIdAndUserId(id, userId)
-                .orElseThrow(() -> new RuntimeException("Notification not found with id: " + id + " for user id: " + userId));
+                .orElseThrow(() -> new BadRequestException("Notification not found with id: " + id + " for user id: " + userId));
 
         return notificationMapper.toResponse(notification);
     }

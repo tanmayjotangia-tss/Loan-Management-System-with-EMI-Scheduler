@@ -6,6 +6,7 @@ import com.loanmanagementsystem.app.entity.Loan;
 import com.loanmanagementsystem.app.entity.LoanProperties;
 import com.loanmanagementsystem.app.entity.Penalty;
 import com.loanmanagementsystem.app.entity.enums.PenaltyReason;
+import com.loanmanagementsystem.app.exception.BadRequestException;
 import com.loanmanagementsystem.app.mapper.PenaltyMapper;
 import com.loanmanagementsystem.app.repository.EmiRepository;
 import com.loanmanagementsystem.app.repository.LoanPropertiesRepository;
@@ -30,12 +31,12 @@ public class PenaltyServiceImplementation implements PenaltyService {
     @Override
     public PenaltyResponse applyPenalty(Long emiId, PenaltyReason reason) {
         Emi emi = emiRepository.findById(emiId)
-                .orElseThrow(() -> new RuntimeException("EMI not found with id: " + emiId));
+                .orElseThrow(() -> new BadRequestException("EMI not found with id: " + emiId));
 
         Loan loan = emi.getLoan();
 
         LoanProperties loanProperties = loanPropertiesRepository.findByLoanType(loan.getLoanType())
-                .orElseThrow(() -> new RuntimeException("Loan properties not found for type: " + loan.getLoanType()));
+                .orElseThrow(() -> new BadRequestException("Loan properties not found for type: " + loan.getLoanType()));
 
         BigDecimal penaltyPercentage= BigDecimal.valueOf(0.0);
         if (reason == PenaltyReason.LATE_PAYMENT) {

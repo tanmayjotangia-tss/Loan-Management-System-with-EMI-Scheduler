@@ -42,6 +42,8 @@ public class LoanApplicationServiceImplementation implements LoanApplicationServ
     private final LoanApplicationForReviewMapper loanApplicationForReviewMapper;
     private final NotificationService notificationService;
     private final LoanRepository loanRepository;
+    private final AuditService auditService;
+
 
 
     @Override
@@ -50,24 +52,24 @@ public class LoanApplicationServiceImplementation implements LoanApplicationServ
                 .orElseThrow(() -> new BadRequestException("Borrower not found"));
 
         LoanProperties loanProperties =loanPropertiesRepository.findByLoanType(request.getLoanType())
-                .orElseThrow(() -> new RuntimeException("Loan properties not found"));
+                .orElseThrow(() -> new BadRequestException("Loan properties not found"));
 
         if(!borrower.getIsVerified()){
-            throw new RuntimeException("First Verify Your Documents");
+            throw new BadRequestException("First Verify Your Documents");
         }
 
         if(loanRepository.findNumberOfActiveLoansByBorrowerId(borrowerId)>=3){
-            throw new RuntimeException("You can't apply for more than 3 loans at a time.");
+            throw new BadRequestException("You can't apply for more than 3 loans at a time.");
         }
 
         if (request.getRequestedAmount().compareTo(loanProperties.getMinAmount()) < 0
                 || request.getRequestedAmount().compareTo(loanProperties.getMaxAmount()) > 0) {
-            throw new RuntimeException("Requested amount must be between " + loanProperties.getMinAmount() + " and " + loanProperties.getMaxAmount());
+            throw new IllegalArgumentException("Requested amount must be between " + loanProperties.getMinAmount() + " and " + loanProperties.getMaxAmount());
         }
 
         if (request.getRequestedTenureMonths() < loanProperties.getMinTenure()
                 || request.getRequestedTenureMonths() > loanProperties.getMaxTenure()) {
-            throw new RuntimeException("Requested tenure must be between " + loanProperties.getMinTenure() + " and " + loanProperties.getMaxTenure() + " months");
+            throw new IllegalArgumentException("Requested tenure must be between " + loanProperties.getMinTenure() + " and " + loanProperties.getMaxTenure() + " months");
         }
 
         LoanApplication loanApplication = applyLoanMapper.toEntity(request);
@@ -91,6 +93,7 @@ public class LoanApplicationServiceImplementation implements LoanApplicationServ
                     "Your loan application for " + request.getRequestedAmount() + " has been Rejected."
             );
             loanApplicationRepository.save(loanApplication);
+            auditService.logAction(borrower.getId(), EntityType.APPLICATION,loanApplication.getId(), AuditAction.CREATED,"Loan Application Created");
             return applyLoanMapper.toResponse(loanApplication);
         }
 
@@ -105,7 +108,7 @@ public class LoanApplicationServiceImplementation implements LoanApplicationServ
                 "Loan Application Submitted",
                 "Your loan application for " + request.getRequestedAmount() + " has been successfully submitted and is under review."
         );
-
+        auditService.logAction(borrower.getId(), EntityType.APPLICATION,loanApplication.getId(), AuditAction.CREATED,"Loan Application Created");
         return applyLoanMapper.toResponse(loanApplication);
     }
 
@@ -186,7 +189,7 @@ public class LoanApplicationServiceImplementation implements LoanApplicationServ
     @Override
     public ReviewedLoanApplicationResponse getApplicationById(Long applicationId) {
         LoanApplication application = loanApplicationRepository.findById(applicationId)
-                .orElseThrow(() -> new RuntimeException("Loan application not found with id: " + applicationId));
+                .orElseThrow(() -> new BadRequestException("Loan application not found with id: " + applicationId));
         return reviewedLoanApplicationMapper.toResponse(application);
     }
 
@@ -228,7 +231,7 @@ public class LoanApplicationServiceImplementation implements LoanApplicationServ
     @Override
     public LoanApplicationForReviewResponse getApplicationForReview(Long applicationId) {
         LoanApplication loanApplication = loanApplicationRepository.findByIdAndStatus(applicationId,LoanApplicationStatus.PENDING)
-                .orElseThrow(() -> new RuntimeException("Loan application not found with id: " + applicationId));
+                .orElseThrow(() -> new BadRequestException("Loan application not found with id: " + applicationId));
 
         return loanApplicationForReviewMapper.toResponse(loanApplication);
     }
@@ -241,13 +244,13 @@ public class LoanApplicationServiceImplementation implements LoanApplicationServ
     @Override
     public ReviewedLoanApplicationResponse reviewApplication(Long applicationId, Long officerId, LoanReviewRequest request) {
         LoanApplication loanApplication = loanApplicationRepository.findByIdAndStatus(applicationId,LoanApplicationStatus.PENDING)
-                .orElseThrow(() -> new RuntimeException("Loan application not found with id: " + applicationId));
+                .orElseThrow(() -> new BadRequestException("Loan application not found with id: " + applicationId));
 
         LoanOfficer loanOfficer = loanOfficerRepository.findById(officerId)
-                .orElseThrow(() -> new RuntimeException("Officer not found with id: " + officerId));
+                .orElseThrow(() -> new BadRequestException("Officer not found with id: " + officerId));
 
         if(loanRepository.findNumberOfActiveLoansByBorrowerId(loanApplication.getBorrower().getId())>=3){
-            throw new RuntimeException("User already have 3 active loans.");
+            throw new BadRequestException("User already have 3 active loans.");
         }
         loanApplication.setStatus(request.getStatus());
         loanApplication.setReviewedByOfficer(loanOfficer);
@@ -256,7 +259,7 @@ public class LoanApplicationServiceImplementation implements LoanApplicationServ
 
         if (request.getStatus() == LoanApplicationStatus.APPROVED) {
             if (request.getFinalStrategy() == null) {
-                throw new RuntimeException("Final strategy is required for approval");
+                throw new BadRequestException("Final strategy is required for approval");
             }
             loanApplication.setFinalStrategy(request.getFinalStrategy());
         }
@@ -276,7 +279,7 @@ public class LoanApplicationServiceImplementation implements LoanApplicationServ
                 "Loan Application Update",
                 "Your loan application status has been updated to: " + request.getStatus() + "."
         );
-
+        auditService.logAction(loanOfficer.getId(), EntityType.APPLICATION,loanApplication.getId(), AuditAction.STATUS_CHANGED,"Loan Application Reviewed");
         return reviewedLoanApplicationMapper.toResponse(loanApplication);
     }
 }

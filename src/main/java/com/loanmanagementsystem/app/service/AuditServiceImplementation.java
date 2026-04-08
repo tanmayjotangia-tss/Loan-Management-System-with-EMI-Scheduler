@@ -5,6 +5,7 @@ import com.loanmanagementsystem.app.entity.AuditLog;
 import com.loanmanagementsystem.app.entity.User;
 import com.loanmanagementsystem.app.entity.enums.AuditAction;
 import com.loanmanagementsystem.app.entity.enums.EntityType;
+import com.loanmanagementsystem.app.exception.AuthenticatedUserNotFoundException;
 import com.loanmanagementsystem.app.mapper.AuditLogMapper;
 import com.loanmanagementsystem.app.repository.AuditLogRepository;
 import com.loanmanagementsystem.app.repository.UserRepository;
@@ -24,7 +25,7 @@ public class AuditServiceImplementation implements AuditService {
     @Override
     public void logAction(Long userId, EntityType entityType, Long entityId, AuditAction action, String oldValue, String newValue) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+                .orElseThrow(() -> new AuthenticatedUserNotFoundException());
 
         AuditLog auditLog = AuditLog.builder()
                 .performedBy(user)
@@ -41,7 +42,7 @@ public class AuditServiceImplementation implements AuditService {
     @Override
     public void logAction(Long userId, EntityType entityType, Long entityId, AuditAction action, String value) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+                .orElseThrow(() -> new AuthenticatedUserNotFoundException());
 
         AuditLog auditLog = AuditLog.builder()
                 .performedBy(user)

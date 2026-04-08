@@ -34,7 +34,7 @@ public class BorrowerServiceImplementation implements BorrowerService {
     @Override
     public void updateBorrower(Long id, UpdateUserRequest request) {
         Borrower borrower = borrowerRepository.findById(id)
-        .orElseThrow(()-> new RuntimeException("No borrower found"));
+        .orElseThrow(()->new BadRequestException("Borrower not found with id: " + id));
 
         if(request.getName() != null){
             borrower.setName(request.getName());

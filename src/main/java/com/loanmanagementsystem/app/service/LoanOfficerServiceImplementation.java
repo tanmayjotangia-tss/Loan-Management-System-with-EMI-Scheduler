@@ -25,7 +25,7 @@ public class LoanOfficerServiceImplementation implements LoanOfficerService {
     @Override
     public LoanOfficerResponse getLoanOfficerById(Long id) {
         LoanOfficer loanOfficer = loanOfficerRepository.findById(id)
-        .orElseThrow(() -> new RuntimeException("Loan Officer not found with id: " + id));
+        .orElseThrow(() -> new BadRequestException("Loan Officer not found with id: " + id));
         return loanOfficerMapper.toResponse(loanOfficer);
     }
 
@@ -42,7 +42,7 @@ public class LoanOfficerServiceImplementation implements LoanOfficerService {
     @Override
     public void updateLoanOfficerAvailability(Long id, Boolean isAvailable) {
         LoanOfficer loanOfficer = loanOfficerRepository.findById(id)
-        .orElseThrow(() -> new RuntimeException("Loan Officer not found with id: " + id));
+        .orElseThrow(() -> new BadRequestException("Loan Officer not found with id: " + id));
 
         boolean oldValue=loanOfficer.getIsAvailable();
         if(oldValue==isAvailable){
@@ -58,7 +58,7 @@ public class LoanOfficerServiceImplementation implements LoanOfficerService {
     @Override
     public void updateLoanOfficerType(Long id, OfficerType officerType) {
         LoanOfficer loanOfficer = loanOfficerRepository.findById(id)
-        .orElseThrow(() -> new RuntimeException("Loan Officer not found with id: " + id));
+        .orElseThrow(() -> new BadRequestException("Loan Officer not found with id: " + id));
 
         OfficerType oldValue=loanOfficer.getOfficerType();
 

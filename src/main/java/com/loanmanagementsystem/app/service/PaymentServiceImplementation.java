@@ -48,30 +48,30 @@ public class PaymentServiceImplementation implements PaymentService {
                         "EMI not found for loanId: " + request.getLoanId() + " and installmentNumber: " + request.getInstallmentNumber()));
 
         if (emi.getStatus() == EmiStatus.UPCOMING) {
-            throw new RuntimeException("This EMI is not payable yet");
+            throw new BadRequestException("This EMI is not payable yet");
         }
 
         if (loan.getStatus() == LoanStatus.CLOSED) {
-            throw new RuntimeException("Cannot make payment on a closed loan");
+            throw new BadRequestException("Cannot make payment on a closed loan");
         }
 
         if (request.getInstallmentNumber() == null) {
-            throw new RuntimeException("Installment Number is required for EMI payment");
+            throw new BadRequestException("Installment Number is required for EMI payment");
         }
 
         if (emi.getStatus() == EmiStatus.PAID) {
-            throw new RuntimeException("EMI is already paid");
+            throw new BadRequestException("EMI is already paid");
         }
 
         if (!emi.getLoan().getId().equals(loan.getId())) {
-            throw new RuntimeException("EMI does not belong to the specified loan");
+            throw new BadRequestException("EMI does not belong to the specified loan");
         }
 
         BigDecimal totalAvailableAmount = request.getAmountPaid().add(borrower.getSurplusAmount());
         BigDecimal payableAmount = emi.getEmiAmount().add(penaltyService.getTotalPendingPenalties(loan.getId()));
 
         if (totalAvailableAmount.compareTo(payableAmount) < 0) {
-            throw new RuntimeException("Amount paid is less than needed amount");
+            throw new BadRequestException("Amount paid is less than needed amount");
         }
 
         Payment payment = paymentMapper.toEntity(request);
@@ -115,24 +115,24 @@ public class PaymentServiceImplementation implements PaymentService {
     @Transactional
     public PaymentResponse makeForeclosurePayment(PaymentRequest request) {
         Loan loan = loanRepository.findById(request.getLoanId())
-                .orElseThrow(() -> new RuntimeException("Loan not found with id: " + request.getLoanId()));
+                .orElseThrow(() -> new BadRequestException("Loan not found with id: " + request.getLoanId()));
         LoanProperties loanProperties = loanPropertiesService.getLoanProperties(loan.getLoanType());
         if (loanProperties == null) {
-            throw new RuntimeException("Loan Properties Not Found.");
+            throw new BadRequestException("Loan Properties Not Found.");
         }
         Borrower borrower = loan.getBorrower();
 
 
         if (loan.getStatus() == LoanStatus.CLOSED) {
-            throw new RuntimeException("Cannot make payment on a closed loan");
+            throw new BadRequestException("Cannot make payment on a closed loan");
         }
 
         if (!loanProperties.getForeclosureAllowed()) {
-            throw new RuntimeException("Foreclosure is not allowed for loan type: " + loan.getLoanType());
+            throw new BadRequestException("Foreclosure is not allowed for loan type: " + loan.getLoanType());
         }
 
         if (loanProperties.getMinEmiBeforeForeclosure() > emiService.getTotalUnpaidEmiByLoan(loan.getId())) {
-            throw new RuntimeException("Minimum " + loanProperties.getMinEmiBeforeForeclosure() + " EMIs required.");
+            throw new BadRequestException("Minimum " + loanProperties.getMinEmiBeforeForeclosure() + " EMIs required.");
         }
 
         BigDecimal chargeOnForeclosure =
@@ -144,7 +144,7 @@ public class PaymentServiceImplementation implements PaymentService {
         BigDecimal totalAvailableAmount = borrower.getSurplusAmount().add(request.getAmountPaid());
 
         if (totalAvailableAmount.compareTo(totalPayableAmount) < 0) {
-            throw new RuntimeException("Amount paid is less than required amount");
+            throw new IllegalArgumentException("Amount paid is less than required amount");
         }
 
         Payment payment = paymentMapper.toEntity(request);

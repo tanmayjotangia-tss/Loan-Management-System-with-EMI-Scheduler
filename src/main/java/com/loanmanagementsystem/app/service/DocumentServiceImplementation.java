@@ -6,6 +6,11 @@ import com.loanmanagementsystem.app.entity.Borrower;
 import com.loanmanagementsystem.app.entity.Document;
 import com.loanmanagementsystem.app.entity.LoanOfficer;
 import com.loanmanagementsystem.app.entity.User;
+import com.loanmanagementsystem.app.entity.enums.AuditAction;
+import com.loanmanagementsystem.app.entity.enums.EntityType;
+import com.loanmanagementsystem.app.exception.AlreadyExistsException;
+import com.loanmanagementsystem.app.exception.AuthenticatedUserNotFoundException;
+import com.loanmanagementsystem.app.exception.BadRequestException;
 import com.loanmanagementsystem.app.mapper.DocumentMapper;
 import com.loanmanagementsystem.app.repository.DocumentRepository;
 import com.loanmanagementsystem.app.repository.LoanOfficerRepository;
@@ -26,15 +31,17 @@ public class DocumentServiceImplementation implements DocumentService {
     private final LoanOfficerRepository loanOfficerRepository;
     private final DocumentMapper documentMapper;
     private final CloudinaryServiceImplementation cloudinaryService;
+    private final AuditService auditService;
+
 
     @Override
     public DocumentResponse uploadDocument(Long userId, DocumentUploadRequest request) {
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new AuthenticatedUserNotFoundException());
 
         if (documentRepository.existsByUserIdAndDocumentType(userId, request.getDocumentType())) {
-            throw new RuntimeException("Document already exists for this type");
+            throw new AlreadyExistsException("Document",request.getDocumentNumber());
         }
 
         String fileUrl = cloudinaryService.uploadFile(request.getFile());
@@ -46,6 +53,7 @@ public class DocumentServiceImplementation implements DocumentService {
         document.setUploadedAt(LocalDateTime.now());
 
         Document saved = documentRepository.save(document);
+        auditService.logAction(user.getId(), EntityType.USER,document.getId(), AuditAction.CREATED,"Document Uploaded: Unverified");
 
         return documentMapper.toResponse(saved);
     }
@@ -62,7 +70,7 @@ public class DocumentServiceImplementation implements DocumentService {
     public DocumentResponse getDocumentById(Long userId, Long documentId) {
 
         Document document = documentRepository.findByIdAndUserId(documentId, userId)
-                .orElseThrow(() -> new RuntimeException("Document not found"));
+                .orElseThrow(() -> new BadRequestException("Document not found"));
 
         return documentMapper.toResponse(document);
     }
@@ -72,14 +80,14 @@ public class DocumentServiceImplementation implements DocumentService {
     public DocumentResponse verifyDocument(Long documentId, Long officerId) {
 
         Document document = documentRepository.findById(documentId)
-                .orElseThrow(() -> new RuntimeException("Document not found"));
+                .orElseThrow(() -> new BadRequestException("Document not found"));
 
         if (Boolean.TRUE.equals(document.getIsVerified())) {
-            throw new RuntimeException("Document already verified");
+            throw new BadRequestException("Document already verified");
         }
 
         LoanOfficer officer = loanOfficerRepository.findById(officerId)
-                .orElseThrow(() -> new RuntimeException("Loan officer not found"));
+                .orElseThrow(() -> new BadRequestException("Loan officer not found"));
 
         User borrower= document.getUser();
         borrower.setIsVerified(true);
@@ -90,6 +98,7 @@ public class DocumentServiceImplementation implements DocumentService {
         userRepository.save(borrower);
         Document updated = documentRepository.save(document);
 
+        auditService.logAction(borrower.getId(), EntityType.USER,document.getId(), AuditAction.STATUS_CHANGED,"Document Verified");
         return documentMapper.toResponse(updated);
     }
 }
