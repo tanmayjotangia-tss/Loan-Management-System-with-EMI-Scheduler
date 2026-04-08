@@ -39,6 +39,22 @@ public class AuditServiceImplementation implements AuditService {
     }
 
     @Override
+    public void logAction(Long userId, EntityType entityType, Long entityId, AuditAction action, String value) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+
+        AuditLog auditLog = AuditLog.builder()
+                .performedBy(user)
+                .entityType(entityType)
+                .entityId(entityId)
+                .action(action)
+                .oldValue(value)
+                .build();
+
+        auditLogRepository.save(auditLog);
+    }
+
+    @Override
     public List<AuditLogResponse> getLogsByUserId(Long userId) {
         return auditLogRepository.findAllByPerformedByIdOrderByTimestampDesc(userId)
                 .stream()

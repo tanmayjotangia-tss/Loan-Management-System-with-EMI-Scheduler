@@ -2,6 +2,8 @@ package com.loanmanagementsystem.app.service;
 import com.loanmanagementsystem.app.dto.request.UpdateUserRequest;
 import com.loanmanagementsystem.app.dto.response.BorrowerResponse;
 import com.loanmanagementsystem.app.entity.Borrower;
+import com.loanmanagementsystem.app.entity.enums.AuditAction;
+import com.loanmanagementsystem.app.entity.enums.EntityType;
 import com.loanmanagementsystem.app.exception.BadRequestException;
 import com.loanmanagementsystem.app.mapper.BorrowerMapper;
 import com.loanmanagementsystem.app.repository.BorrowerRepository;
@@ -15,6 +17,7 @@ import java.util.List;
 public class BorrowerServiceImplementation implements BorrowerService {
     private final BorrowerRepository borrowerRepository;
     private final BorrowerMapper borrowerMapper;
+    private final AuditService auditService;
     
     @Override
     public BorrowerResponse getBorrowerById(Long id) {
@@ -59,5 +62,7 @@ public class BorrowerServiceImplementation implements BorrowerService {
         }
 
         borrowerRepository.save(borrower);
+        auditService.logAction(borrower.getId(), EntityType.USER,borrower.getId(), AuditAction.UPDATED,"Old Profile Details", "New Profile Details");
+
     }
 }

@@ -9,6 +9,8 @@ import com.loanmanagementsystem.app.dto.response.UserResponse;
 import com.loanmanagementsystem.app.entity.Borrower;
 import com.loanmanagementsystem.app.entity.LoanOfficer;
 import com.loanmanagementsystem.app.entity.User;
+import com.loanmanagementsystem.app.entity.enums.AuditAction;
+import com.loanmanagementsystem.app.entity.enums.EntityType;
 import com.loanmanagementsystem.app.entity.enums.Role;
 import com.loanmanagementsystem.app.mapper.BorrowerMapper;
 import com.loanmanagementsystem.app.repository.UserRepository;
@@ -34,6 +36,7 @@ public class AuthServiceImplementation implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final BorrowerMapper borrowerMapper;
+    private final AuditService auditService;
 
     @Override
     @Transactional
@@ -71,6 +74,8 @@ public class AuthServiceImplementation implements AuthService {
         borrower.setIsVerified(false);
 
         userRepository.save(borrower);
+
+        auditService.logAction(borrower.getId(), EntityType.USER,borrower.getId(), AuditAction.CREATED,borrower.getName());
 
         return AuthResponse.builder()
                 .userId(borrower.getId())
@@ -122,6 +127,8 @@ public class AuthServiceImplementation implements AuthService {
         officer.setIsAvailable(true);
 
         userRepository.save(officer);
+
+        auditService.logAction(officer.getId(), EntityType.USER,officer.getId(), AuditAction.CREATED,officer.getName());
 
         return AuthResponse.builder()
                 .userId(officer.getId())
@@ -193,6 +200,8 @@ public class AuthServiceImplementation implements AuthService {
         
         user.setIsActive(false);
         userRepository.save(user);
+        auditService.logAction(user.getId(), EntityType.USER,user.getId(), AuditAction.STATUS_CHANGED,"Account Active","Account Deactivate");
+
     }
 
     @Override
@@ -226,5 +235,7 @@ public class AuthServiceImplementation implements AuthService {
         }
 
         userRepository.save(user);
+        auditService.logAction(user.getId(), EntityType.USER,user.getId(), AuditAction.UPDATED,"Old Credentials", "New Credentials");
+
     }
 }
