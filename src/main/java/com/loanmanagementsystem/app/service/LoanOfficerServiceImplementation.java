@@ -3,6 +3,7 @@ package com.loanmanagementsystem.app.service;
 import com.loanmanagementsystem.app.dto.response.LoanOfficerResponse;
 import com.loanmanagementsystem.app.entity.LoanOfficer;
 import com.loanmanagementsystem.app.entity.enums.OfficerType;
+import com.loanmanagementsystem.app.exception.BadRequestException;
 import com.loanmanagementsystem.app.mapper.LoanOfficerMapper;
 import com.loanmanagementsystem.app.repository.LoanOfficerRepository;
 import org.springframework.stereotype.Service;
@@ -21,7 +22,7 @@ public class LoanOfficerServiceImplementation implements LoanOfficerService {
     @Override
     public LoanOfficerResponse getLoanOfficerById(Long id) {
         LoanOfficer loanOfficer = loanOfficerRepository.findById(id)
-        .orElseThrow(() -> new RuntimeException("Loan Officer not found with id: " + id));
+        .orElseThrow(() -> new BadRequestException("Loan Officer not found with id: " + id));
         return loanOfficerMapper.toResponse(loanOfficer);
     }
 
@@ -38,7 +39,7 @@ public class LoanOfficerServiceImplementation implements LoanOfficerService {
     @Override
     public void updateLoanOfficerAvailability(Long id, Boolean isAvailable) {
         LoanOfficer loanOfficer = loanOfficerRepository.findById(id)
-        .orElseThrow(() -> new RuntimeException("Loan Officer not found with id: " + id));
+        .orElseThrow(() -> new BadRequestException("Loan Officer not found with id: " + id));
         loanOfficer.setIsAvailable(isAvailable);
         loanOfficerRepository.save(loanOfficer);
     }
@@ -46,7 +47,7 @@ public class LoanOfficerServiceImplementation implements LoanOfficerService {
     @Override
     public void updateLoanOfficerType(Long id, OfficerType officerType) {
         LoanOfficer loanOfficer = loanOfficerRepository.findById(id)
-        .orElseThrow(() -> new RuntimeException("Loan Officer not found with id: " + id));
+        .orElseThrow(() -> new BadRequestException("Loan Officer not found with id: " + id));
         loanOfficer.setOfficerType(officerType);
         loanOfficerRepository.save(loanOfficer);
     }

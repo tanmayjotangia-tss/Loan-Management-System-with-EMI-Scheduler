@@ -12,12 +12,14 @@ import com.loanmanagementsystem.app.entity.User;
 import com.loanmanagementsystem.app.entity.enums.AuditAction;
 import com.loanmanagementsystem.app.entity.enums.EntityType;
 import com.loanmanagementsystem.app.entity.enums.Role;
+import com.loanmanagementsystem.app.exception.AlreadyExistsException;
+import com.loanmanagementsystem.app.exception.AuthenticatedUserNotFoundException;
+import com.loanmanagementsystem.app.exception.BadCredentialsException;
 import com.loanmanagementsystem.app.mapper.BorrowerMapper;
 import com.loanmanagementsystem.app.repository.UserRepository;
 import com.loanmanagementsystem.app.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 
@@ -59,12 +61,12 @@ public class AuthServiceImplementation implements AuthService {
                         .role(user.getRole())
                         .build();
             } else {
-                throw new RuntimeException("Email already registered: " + request.getEmail());
+                throw new AlreadyExistsException("Email", request.getEmail());
             }
         }
 
         if (userRepository.existsByPhoneNumber(request.getPhoneNumber())) {
-            throw new RuntimeException("Phone number already registered: " + request.getPhoneNumber());
+            throw new AlreadyExistsException("Phone number ", request.getPhoneNumber());
         }
 
         Borrower borrower = borrowerMapper.toEntity(request);
@@ -106,12 +108,12 @@ public class AuthServiceImplementation implements AuthService {
                         .role(user.getRole())
                         .build();
             } else {
-                throw new RuntimeException("Email already registered: " + request.getEmail());
+                throw new AlreadyExistsException("Email", request.getEmail());
             }
         }
 
         if (userRepository.existsByPhoneNumber(request.getPhoneNumber())) {
-            throw new RuntimeException("Phone number already registered: " + request.getPhoneNumber());
+            throw new AlreadyExistsException("Phone number ", request.getPhoneNumber());
         }
 
         LoanOfficer officer = new LoanOfficer();
@@ -168,16 +170,16 @@ public class AuthServiceImplementation implements AuthService {
                             .role(user.getRole())
                             .accessToken(token)
                             .build())
-                    .orElseThrow(() -> new RuntimeException("User not found after authentication"));
+                    .orElseThrow(() -> new AuthenticatedUserNotFoundException());
         } catch (BadCredentialsException e) {
-            throw new RuntimeException("Invalid email or password");
+            throw new com.loanmanagementsystem.app.exception.BadCredentialsException();
         }
     }
 
     @Override
     public UserResponse getCurrentUser(Long userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new AuthenticatedUserNotFoundException());
         
         return UserResponse.builder()
                 .id(user.getId())
@@ -196,7 +198,7 @@ public class AuthServiceImplementation implements AuthService {
     @Transactional
     public void deactivateAccount(Long userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new AuthenticatedUserNotFoundException());
         
         user.setIsActive(false);
         userRepository.save(user);
@@ -208,19 +210,19 @@ public class AuthServiceImplementation implements AuthService {
     @Transactional
     public void updateCredentials(Long userId, UpdateCredentialsRequest request) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new AuthenticatedUserNotFoundException());
         String currentEmail = user.getEmail();
 
         if (request.getEmail() != null && !request.getEmail().trim().isEmpty()) {
             if (!currentEmail.equals(request.getEmail()) && userRepository.existsByEmail(request.getEmail())) {
-                throw new RuntimeException("Email already taken");
+                throw new AlreadyExistsException("Email", request.getEmail());
             }
             user.setEmail(request.getEmail());
         }
 
         if (request.getPhoneNumber() != null && !request.getPhoneNumber().trim().isEmpty()) {
             if (!request.getPhoneNumber().equals(user.getPhoneNumber()) && userRepository.existsByPhoneNumber(request.getPhoneNumber())) {
-                throw new RuntimeException("Phone number already taken");
+                throw new AlreadyExistsException("Phone number ", request.getPhoneNumber());
             }
             user.setPhoneNumber(request.getPhoneNumber());
         }
@@ -229,7 +231,7 @@ public class AuthServiceImplementation implements AuthService {
             request.getNewPassword() != null && !request.getNewPassword().isEmpty()) {
             
             if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
-                throw new RuntimeException("Invalid old password");
+                throw new com.loanmanagementsystem.app.exception.BadCredentialsException();
             }
             user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         }

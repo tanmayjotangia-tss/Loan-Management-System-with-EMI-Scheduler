@@ -2,6 +2,7 @@ package com.loanmanagementsystem.app.service;
 
 import com.loanmanagementsystem.app.entity.LoanProperties;
 import com.loanmanagementsystem.app.entity.enums.LoanType;
+import com.loanmanagementsystem.app.exception.BadRequestException;
 import com.loanmanagementsystem.app.repository.LoanPropertiesRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -15,7 +16,7 @@ public class LoanPropertiesServiceImplementation implements LoanPropertiesServic
     @Override
     public LoanProperties updateLoanProperties(LoanType loanType, LoanProperties updatedProperties) {
         LoanProperties loanProperties = loanPropertiesRepository.findByLoanType(loanType)
-                .orElseThrow(() -> new RuntimeException("Loan properties not found for type: " + loanType));
+                .orElseThrow(() -> new BadRequestException("Loan properties not found for type: " + loanType));
 
         if (updatedProperties.getInterestRate() != null) {
             loanProperties.setInterestRate(updatedProperties.getInterestRate());
@@ -59,6 +60,6 @@ public class LoanPropertiesServiceImplementation implements LoanPropertiesServic
     @Override
     public LoanProperties getLoanProperties(LoanType loanType) {
         return loanPropertiesRepository.findByLoanType(loanType)
-                .orElseThrow(() -> new RuntimeException("Loan properties not found for type: " + loanType));
+                .orElseThrow(() -> new BadRequestException("Loan properties not found for type: " + loanType));
     }
 }
