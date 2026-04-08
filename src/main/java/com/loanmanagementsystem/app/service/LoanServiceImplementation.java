@@ -47,10 +47,6 @@ public class LoanServiceImplementation implements LoanService {
             throw new BadRequestException("Borrower not found");
         }
 
-        int newCreditScore=creditScoreService.updateOnLoanCreation(borrower.getCreditScore(),loanApplication.getRequestedAmount());
-        borrower.setCreditScore(newCreditScore);
-        borrowerRepository.save(borrower);
-
         if (loanApplication.getStatus() != LoanApplicationStatus.APPROVED) {
             throw new BadRequestException("Loan application must be APPROVED to create a loan. Current status: " + loanApplication.getStatus());
         }
@@ -112,6 +108,10 @@ public class LoanServiceImplementation implements LoanService {
 
         loanRepository.save(loan);
         emiRepository.saveAll(emiList);
+
+        int newCreditScore=creditScoreService.updateOnLoanCreation(borrower.getCreditScore(),loanApplication.getRequestedAmount());
+        borrower.setCreditScore(newCreditScore);
+        borrowerRepository.save(borrower);
 
         String loanInfo="Type: "+loan.getLoanType()+", Amount: "+loan.getTotalPayableAmount()+", Tenure Months: "+loan.getTenureMonths();
         auditService.logAction(borrower.getId(),EntityType.LOAN,loan.getId(),AuditAction.CREATED, loanInfo);
@@ -178,7 +178,7 @@ public class LoanServiceImplementation implements LoanService {
         loan.setStatus(LoanStatus.CLOSED);
         loanRepository.save(loan);
 
-        auditService.logAction(loan.getBorrower().getId(),EntityType.LOAN,loan.getId(),AuditAction.CREATED, "ACTIVE", "CLOSED");
+        auditService.logAction(loan.getBorrower().getId(),EntityType.LOAN,loan.getId(),AuditAction.STATUS_CHANGED, "ACTIVE", "CLOSED");
 
         return loanMapper.toResponse(loan);
     }
