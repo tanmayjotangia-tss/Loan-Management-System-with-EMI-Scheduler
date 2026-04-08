@@ -15,24 +15,31 @@ public class CustomUserDetailsService implements UserDetailsService {
     private final UserRepository userRepository;
 
     @Override
-    public UserDetails loadUserByUsername(String identifier) throws UsernameNotFoundException {
-        User user;
-        if (identifier.contains("@")) {
-            user = userRepository.findByEmailAndIsActiveTrue(identifier)
-                    .orElseThrow(() -> new UsernameNotFoundException(
-                            "No active account found for email: " + identifier));
-        } else {
-            try {
-                Long id = Long.parseLong(identifier);
-                user = userRepository.findById(id)
-                        .filter(User::getIsActive)
-                        .orElseThrow(() -> new UsernameNotFoundException(
-                                "No active account found for id: " + id));
-            } catch (NumberFormatException e) {
-                throw new UsernameNotFoundException("Invalid identifier: " + identifier);
-            }
-        }
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
 
-        return new CustomUserDetails(user.getId(), user.getEmail(), user.getPassword(), user.getRole());
+        User user = userRepository.findByEmailAndIsActiveTrue(email)
+                .orElseThrow(() ->
+                        new UsernameNotFoundException("No active account found for email: " + email));
+
+        return new CustomUserDetails(
+                user.getId(),
+                user.getEmail(),
+                user.getPassword(),
+                user.getRole()
+        );
+    }
+
+    public UserDetails loadUserById(Long userId) {
+        User user = userRepository.findById(userId)
+                .filter(User::getIsActive)
+                .orElseThrow(() ->
+                        new UsernameNotFoundException("User not found with id: " + userId));
+
+        return new CustomUserDetails(
+                user.getId(),
+                user.getEmail(),
+                user.getPassword(),
+                user.getRole()
+        );
     }
 }

@@ -29,8 +29,7 @@ public class JwtTokenProvider {
 
         return Jwts.builder()
                 .subject(String.valueOf(user.getUserId()))
-                .claim("userId", user.getUserId())
-                .claim("role",   user.getRole().name())
+                .claim("role", user.getRole().name())
                 .issuedAt(now)
                 .expiration(expiry)
                 .signWith(signingKey())
@@ -55,14 +54,6 @@ public class JwtTokenProvider {
 
     public String getIdentifier(String token) {
         return parseClaims(token).getSubject();
-    }
-
-    public Long getUserId(String token) {
-        return parseClaims(token).get("userId", Long.class);
-    }
-
-    public String getRole(String token) {
-        return parseClaims(token).get("role", String.class);
     }
 
     private Claims parseClaims(String token) {
