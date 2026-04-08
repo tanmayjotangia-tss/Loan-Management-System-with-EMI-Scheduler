@@ -2,9 +2,12 @@ package com.loanmanagementsystem.app.controller;
 
 import com.loanmanagementsystem.app.dto.response.ApiResponse;
 import com.loanmanagementsystem.app.dto.response.EmiResponse;
+import com.loanmanagementsystem.app.dto.response.LoanResponse;
 import com.loanmanagementsystem.app.service.EmiService;
+import com.loanmanagementsystem.app.service.LoanService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +21,7 @@ import java.util.List;
 public class EmiController {
 
     private final EmiService emiService;
+    private final LoanService loanService;
 
     @GetMapping("/borrower/{borrowerId}/loan/{loanId}/unpaid")
     @PreAuthorize("hasAnyRole('LOAN_OFFICER') or " +
@@ -25,6 +29,8 @@ public class EmiController {
     public ResponseEntity<ApiResponse<List<EmiResponse>>> getAllUnpaidEmis(
             @PathVariable Long borrowerId,
             @PathVariable Long loanId) {
+
+        verifyLoanOwnership(loanId,borrowerId);
 
         return ResponseEntity.ok(
                 ApiResponse.success(
@@ -42,6 +48,8 @@ public class EmiController {
             @PathVariable Long borrowerId,
             @PathVariable Long loanId) {
 
+        verifyLoanOwnership(loanId,borrowerId);
+
         return ResponseEntity.ok(
                 ApiResponse.success(
                         200,
@@ -49,5 +57,13 @@ public class EmiController {
                         emiService.getAllEmis(loanId)
                 )
         );
+    }
+
+    private void verifyLoanOwnership(Long loanId, Long borrowerId) {
+        LoanResponse loan = loanService.getLoanById(loanId);
+        if (!loan.getBorrowerId().equals(borrowerId)) {
+            throw new AccessDeniedException(
+                    "Loan #" + loanId + " does not belong to borrower #" + borrowerId);
+        }
     }
 }

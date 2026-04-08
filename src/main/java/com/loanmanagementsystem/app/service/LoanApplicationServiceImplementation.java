@@ -18,6 +18,7 @@ import com.loanmanagementsystem.app.mapper.PendingLoanApplicationMapper;
 import com.loanmanagementsystem.app.mapper.ReviewedLoanApplicationMapper;
 import com.loanmanagementsystem.app.repository.*;
 import com.loanmanagementsystem.app.security.CustomUserDetails;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -47,6 +48,7 @@ public class LoanApplicationServiceImplementation implements LoanApplicationServ
 
 
     @Override
+    @Transactional
     public ApplyLoanResponse applyForLoan(Long borrowerId, LoanApplicationRequest request) {
         Borrower borrower = borrowerRepository.findById(borrowerId)
                 .orElseThrow(() -> new BadRequestException("Borrower not found"));
@@ -242,6 +244,7 @@ public class LoanApplicationServiceImplementation implements LoanApplicationServ
     }
 
     @Override
+    @Transactional
     public ReviewedLoanApplicationResponse reviewApplication(Long applicationId, Long officerId, LoanReviewRequest request) {
         LoanApplication loanApplication = loanApplicationRepository.findByIdAndStatus(applicationId,LoanApplicationStatus.PENDING)
                 .orElseThrow(() -> new BadRequestException("Loan application not found with id: " + applicationId));
