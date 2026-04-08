@@ -4,9 +4,7 @@ import com.loanmanagementsystem.app.dto.request.PaymentRequest;
 import com.loanmanagementsystem.app.dto.response.EmiResponse;
 import com.loanmanagementsystem.app.dto.response.PaymentResponse;
 import com.loanmanagementsystem.app.entity.*;
-import com.loanmanagementsystem.app.entity.enums.EmiStatus;
-import com.loanmanagementsystem.app.entity.enums.LoanStatus;
-import com.loanmanagementsystem.app.entity.enums.NotificationType;
+import com.loanmanagementsystem.app.entity.enums.*;
 import com.loanmanagementsystem.app.exception.BadRequestException;
 import com.loanmanagementsystem.app.mapper.PaymentMapper;
 import com.loanmanagementsystem.app.repository.*;
@@ -34,7 +32,7 @@ public class PaymentServiceImplementation implements PaymentService {
     private final PenaltyService penaltyService;
     private final CreditScoreService creditScoreService;
     private final BorrowerRepository borrowerRepository;
-
+    private final AuditService auditService;
 
     @Override
     @Transactional
@@ -100,6 +98,8 @@ public class PaymentServiceImplementation implements PaymentService {
 
         borrowerRepository.save(borrower);
         penaltyService.markPenaltiesPaid(loan.getId());
+
+        auditService.logAction(borrower.getId(), EntityType.EMI, emi.getId(), AuditAction.STATUS_CHANGED, "UNPAID", "PAID");
 
         notificationService.sendNotification(
                 loan.getBorrower().getId(),
@@ -170,6 +170,8 @@ public class PaymentServiceImplementation implements PaymentService {
         penaltyService.markPenaltiesPaid(loan.getId());
 
         emiService.markEmisPaid(loan.getId());
+
+        auditService.logAction(borrower.getId(), EntityType.LOAN, loan.getId(), AuditAction.STATUS_CHANGED, "UNPAID", "PAID");
 
         return paymentMapper.toResponse(payment);
     }

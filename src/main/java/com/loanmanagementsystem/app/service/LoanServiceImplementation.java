@@ -30,6 +30,7 @@ public class LoanServiceImplementation implements LoanService {
     private final LoanStrategyFactory strategyFactory;
     private final CreditScoreService creditScoreService;
     private final BorrowerRepository borrowerRepository;
+    private final AuditService auditService;
 
     @Transactional
     @Override
@@ -112,6 +113,9 @@ public class LoanServiceImplementation implements LoanService {
         loanRepository.save(loan);
         emiRepository.saveAll(emiList);
 
+        String loanInfo="Type: "+loan.getLoanType()+", Amount: "+loan.getTotalPayableAmount()+", Tenure Months: "+loan.getTenureMonths();
+        auditService.logAction(borrower.getId(),EntityType.LOAN,loan.getId(),AuditAction.CREATED, loanInfo);
+
         return loanMapper.toResponse(loan);
     }
 
@@ -173,6 +177,8 @@ public class LoanServiceImplementation implements LoanService {
 
         loan.setStatus(LoanStatus.CLOSED);
         loanRepository.save(loan);
+
+        auditService.logAction(loan.getBorrower().getId(),EntityType.LOAN,loan.getId(),AuditAction.CREATED, "ACTIVE", "CLOSED");
 
         return loanMapper.toResponse(loan);
     }
