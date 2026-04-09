@@ -1,9 +1,6 @@
 package com.loanmanagementsystem.app.service;
 
-import com.loanmanagementsystem.app.dto.request.LoginRequest;
-import com.loanmanagementsystem.app.dto.request.RegisterOfficerRequest;
-import com.loanmanagementsystem.app.dto.request.RegisterBorrowerRequest;
-import com.loanmanagementsystem.app.dto.request.UpdateCredentialsRequest;
+import com.loanmanagementsystem.app.dto.request.*;
 import com.loanmanagementsystem.app.dto.response.AuthResponse;
 import com.loanmanagementsystem.app.dto.response.UserResponse;
 import com.loanmanagementsystem.app.entity.Borrower;
@@ -140,6 +137,38 @@ public class AuthServiceImplementation implements AuthService {
                 .build();
     }
 
+    @Override
+    @Transactional
+    public AuthResponse registerAdmin(RegisterAdminRequest request) {
+
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new AlreadyExistsException("Email", request.getEmail());
+        }
+
+        if (userRepository.existsByPhoneNumber(request.getPhoneNumber())) {
+            throw new AlreadyExistsException("Phone number", request.getPhoneNumber());
+        }
+
+        User admin = new User();
+        admin.setName(request.getName());
+        admin.setEmail(request.getEmail());
+        admin.setPhoneNumber(request.getPhoneNumber());
+        admin.setPassword(passwordEncoder.encode(request.getPassword()));
+        admin.setRole(Role.ADMIN);
+        admin.setIsActive(true);
+        admin.setIsVerified(true);
+
+        userRepository.save(admin);
+
+        auditService.logAction(admin.getId(), EntityType.USER, admin.getId(), AuditAction.CREATED, admin.getName());
+
+        return AuthResponse.builder()
+                .userId(admin.getId())
+                .name(admin.getName())
+                .email(admin.getEmail())
+                .role(admin.getRole())
+                .build();
+    }
     @Override
     public boolean isEmailExists(String email) {
         return userRepository.existsByEmail(email);

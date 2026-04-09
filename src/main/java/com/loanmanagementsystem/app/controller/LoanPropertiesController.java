@@ -1,5 +1,6 @@
 package com.loanmanagementsystem.app.controller;
 
+import com.loanmanagementsystem.app.dto.request.LoanPropertiesUpdateRequest;
 import com.loanmanagementsystem.app.dto.response.ApiResponse;
 import com.loanmanagementsystem.app.entity.LoanProperties;
 import com.loanmanagementsystem.app.entity.enums.LoanType;
@@ -20,7 +21,7 @@ public class LoanPropertiesController {
     private final LoanPropertiesService loanPropertiesService;
 
     @GetMapping("/{loanType}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<LoanProperties>> getLoanProperties(
             @PathVariable LoanType loanType) {
 
@@ -35,7 +36,7 @@ public class LoanPropertiesController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<LoanProperties>> updateLoanProperties(
             @PathVariable LoanType loanType,
-            @Valid @RequestBody LoanProperties updatedProperties) {
+            @Valid @RequestBody LoanPropertiesUpdateRequest updatedProperties) {
 
         LoanProperties response =
                 loanPropertiesService.updateLoanProperties(loanType, updatedProperties);

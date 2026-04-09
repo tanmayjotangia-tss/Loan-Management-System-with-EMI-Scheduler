@@ -1,9 +1,6 @@
 package com.loanmanagementsystem.app.controller;
 
-import com.loanmanagementsystem.app.dto.request.LoginRequest;
-import com.loanmanagementsystem.app.dto.request.RegisterOfficerRequest;
-import com.loanmanagementsystem.app.dto.request.RegisterBorrowerRequest;
-import com.loanmanagementsystem.app.dto.request.UpdateCredentialsRequest;
+import com.loanmanagementsystem.app.dto.request.*;
 import com.loanmanagementsystem.app.dto.response.ApiResponse;
 import com.loanmanagementsystem.app.dto.response.AuthResponse;
 import com.loanmanagementsystem.app.dto.response.UserResponse;
@@ -44,6 +41,16 @@ public class AuthController {
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(201, "Loan officer registered successfully"));
+    }
+
+    @PostMapping("/register/admin")
+    public ResponseEntity<ApiResponse<AuthResponse>> registerAdmin(
+            @Valid @RequestBody RegisterAdminRequest request) {
+
+        AuthResponse response = authService.registerAdmin(request);
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success(201, "Admin registered successfully"));
     }
 
     @PostMapping("/login")
