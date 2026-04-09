@@ -1,5 +1,6 @@
 package com.loanmanagementsystem.app.service;
 
+import com.loanmanagementsystem.app.dto.request.LoanPropertiesUpdateRequest;
 import com.loanmanagementsystem.app.entity.LoanProperties;
 import com.loanmanagementsystem.app.entity.enums.LoanType;
 import com.loanmanagementsystem.app.exception.BadRequestException;
@@ -14,7 +15,7 @@ public class LoanPropertiesServiceImplementation implements LoanPropertiesServic
     private final LoanPropertiesRepository loanPropertiesRepository;
 
     @Override
-    public LoanProperties updateLoanProperties(LoanType loanType, LoanProperties updatedProperties) {
+    public LoanProperties updateLoanProperties(LoanType loanType, LoanPropertiesUpdateRequest updatedProperties) {
         LoanProperties loanProperties = loanPropertiesRepository.findByLoanType(loanType)
                 .orElseThrow(() -> new BadRequestException("Loan properties not found for type: " + loanType));
 
@@ -45,11 +46,12 @@ public class LoanPropertiesServiceImplementation implements LoanPropertiesServic
         if (updatedProperties.getMinRequiredCibilScore() != null) {
             loanProperties.setMinRequiredCibilScore(updatedProperties.getMinRequiredCibilScore());
         }
-
         if (updatedProperties.getForeclosureAllowed() != null) {
             loanProperties.setForeclosureAllowed(updatedProperties.getForeclosureAllowed());
         }
-
+        if (updatedProperties.getMinEmiBeforeForeclosure() != null) {
+            loanProperties.setMinEmiBeforeForeclosure(updatedProperties.getMinEmiBeforeForeclosure());
+        }
         if (updatedProperties.getForeclosurePenaltyPercent() != null) {
             loanProperties.setForeclosurePenaltyPercent(updatedProperties.getForeclosurePenaltyPercent());
         }
